@@ -18,26 +18,12 @@ package org.matrix.android.sdk.internal.auth
 
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.util.JsonDict
-import org.matrix.android.sdk.internal.auth.data.Availability
-import org.matrix.android.sdk.internal.auth.data.LoginFlowResponse
-import org.matrix.android.sdk.internal.auth.data.PasswordLoginParams
-import org.matrix.android.sdk.internal.auth.data.TokenLoginParams
-import org.matrix.android.sdk.internal.auth.data.WebClientConfig
+import org.matrix.android.sdk.internal.auth.data.*
 import org.matrix.android.sdk.internal.auth.login.ResetPasswordMailConfirmed
-import org.matrix.android.sdk.internal.auth.registration.AddThreePidRegistrationParams
-import org.matrix.android.sdk.internal.auth.registration.AddThreePidRegistrationResponse
-import org.matrix.android.sdk.internal.auth.registration.RegistrationParams
-import org.matrix.android.sdk.internal.auth.registration.SuccessResult
-import org.matrix.android.sdk.internal.auth.registration.ValidationCodeBody
+import org.matrix.android.sdk.internal.auth.registration.*
 import org.matrix.android.sdk.internal.auth.version.Versions
 import org.matrix.android.sdk.internal.network.NetworkConstants
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.Headers
-import retrofit2.http.POST
-import retrofit2.http.Path
-import retrofit2.http.Query
-import retrofit2.http.Url
+import retrofit2.http.*
 
 /**
  * The login REST API.
@@ -69,6 +55,14 @@ internal interface AuthAPI {
     suspend fun register(@Body registrationParams: RegistrationParams): Credentials
 
     /**
+     * Register to the homeserver, or get error 401 with a RegistrationFlowResponse object if registration is incomplete
+     * method to perform other custom stages
+     * Ref: https://matrix.org/docs/spec/client_server/latest#account-registration-and-management
+     */
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "register")
+    suspend fun registerOther(@Body registrationOtherParams: RegistrationOtherParams): Credentials
+
+    /**
      * Checks to see if a username is available, and valid, for the server.
      */
     @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "register/available")
@@ -89,15 +83,20 @@ internal interface AuthAPI {
      * https://github.com/matrix-org/matrix-doc/pull/2290
      */
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "register/{threePid}/requestToken")
-    suspend fun add3Pid(@Path("threePid") threePid: String,
-                        @Body params: AddThreePidRegistrationParams): AddThreePidRegistrationResponse
+    suspend fun add3Pid(
+        @Path("threePid") threePid: String,
+        @Body params: AddThreePidRegistrationParams
+    ): AddThreePidRegistrationResponse
 
     /**
      * Validate 3pid
      */
+    @Headers("Content-Type: application/json")
     @POST
-    suspend fun validate3Pid(@Url url: String,
-                             @Body params: ValidationCodeBody): SuccessResult
+    suspend fun validate3Pid(
+        @Url url: String,
+        @Body params: ValidationCodeBody
+    ): SuccessResult
 
     /**
      * Get the supported login flow
