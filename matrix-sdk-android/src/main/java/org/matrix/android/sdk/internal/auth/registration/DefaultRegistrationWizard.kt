@@ -206,7 +206,7 @@ internal class DefaultRegistrationWizard(
         if (validationResponse.isSuccess()) {
             // The entered code is correct
             // Same than validate email
-            return performRegistrationRequest(registrationParams, 3_000)
+            return performRegistrationRequest(registrationParams)
         } else {
             // The code is not correct
             throw Failure.SuccessError
