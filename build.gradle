@@ -3,7 +3,6 @@
 buildscript {
     apply from: 'dependencies.gradle'
     apply from: 'dependencies_groups.gradle'
-    apply from: 'gradle-publish.gradle'
 
     repositories {
         google()

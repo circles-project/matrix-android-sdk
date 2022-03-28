@@ -5,6 +5,8 @@ apply plugin: 'kotlin-parcelize'
 apply plugin: 'realm-android'
 
 buildscript {
+    apply from: 'gradle-publish.gradle'
+
     repositories {
         mavenCentral()
     }
