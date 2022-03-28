@@ -3,8 +3,6 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'realm-android'
-// WARNING: always restore this line after importing code from Element Android (1/2)
-apply plugin: "com.vanniktech.maven.publish"
 
 buildscript {
     repositories {

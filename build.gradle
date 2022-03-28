@@ -3,6 +3,7 @@
 buildscript {
     apply from: 'dependencies.gradle'
     apply from: 'dependencies_groups.gradle'
+    apply from: 'gradle-publish.gradle'
 
     repositories {
         google()
@@ -14,7 +15,6 @@ buildscript {
     dependencies {
         classpath libs.gradle.gradlePlugin
         classpath libs.gradle.kotlinPlugin
-        classpath 'com.vanniktech:gradle-maven-publish-plugin:0.18.0'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -54,14 +54,6 @@ allprojects {
         // Warnings are potential errors, so stop ignoring them
         // Ignore on the SDK for the moment
         kotlinOptions.allWarningsAsErrors = false
-    }
-
-    plugins.withId("com.vanniktech.maven.publish") {
-        // Publish on s01.oss.sonatype.org
-        //https://github.com/vanniktech/gradle-maven-publish-plugin#where-to-upload-to
-        mavenPublish {
-            sonatypeHost = "S01"
-        }
     }
 }
 

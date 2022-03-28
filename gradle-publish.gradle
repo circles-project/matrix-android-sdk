@@ -1,0 +1,40 @@
+apply plugin: 'maven-publish'
+
+def artifactId = "matrix-sdk-android"
+def artifactFilePath = "$buildDir/outputs/aar/${artifactId}-release.aar"
+def publicationName = "release"
+
+
+publishing {
+    publications {
+        "${publicationName}"(MavenPublication) {
+            groupId "org.matrix.android"
+            artifactId "${artifactId}"
+            version "1.4.4"
+            artifact "${artifactFilePath}"
+
+            // To include project dependencies
+            pom.withXml {
+                def dependencies = asNode().appendNode('dependencies')
+                configurations.getByName("${publicationName}CompileClasspath").getResolvedConfiguration().getFirstLevelModuleDependencies().each {
+                    def dependency = dependencies.appendNode('dependency')
+                    dependency.appendNode('groupId', it.moduleGroup)
+                    dependency.appendNode('artifactId', it.moduleName)
+                    dependency.appendNode('version', it.moduleVersion)
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url "https://gitlab.com/api/v4/projects/16/packages/maven"
+            credentials(HttpHeaderCredentials) {
+                name = "Private-Token"
+                value = "e3yxa-_Duy7xLabSa7_z"
+            }
+            authentication {
+                header(HttpHeaderAuthentication)
+            }
+        }
+    }
+}
