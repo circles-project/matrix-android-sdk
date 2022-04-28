@@ -35,9 +35,10 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
-import org.matrix.android.sdk.internal.database.lightweight.LightweightSettingsStorage
+import org.matrix.android.sdk.api.settings.LightweightSettingsStorage
 import org.matrix.android.sdk.internal.database.mapper.TimelineEventMapper
 import org.matrix.android.sdk.internal.session.room.membership.LoadRoomMembersTask
+import org.matrix.android.sdk.internal.session.room.relation.threads.FetchThreadTimelineTask
 import org.matrix.android.sdk.internal.session.sync.handler.room.ReadReceiptHandler
 import org.matrix.android.sdk.internal.session.sync.handler.room.ThreadsAwarenessHandler
 import org.matrix.android.sdk.internal.task.SemaphoreCoroutineSequencer
@@ -58,6 +59,7 @@ internal class DefaultTimeline(private val roomId: String,
                                paginationTask: PaginationTask,
                                getEventTask: GetContextOfEventTask,
                                fetchTokenAndPaginateTask: FetchTokenAndPaginateTask,
+                               fetchThreadTimelineTask: FetchThreadTimelineTask,
                                timelineEventMapper: TimelineEventMapper,
                                timelineInput: TimelineInput,
                                threadsAwarenessHandler: ThreadsAwarenessHandler,
@@ -89,7 +91,9 @@ internal class DefaultTimeline(private val roomId: String,
             realm = backgroundRealm,
             eventDecryptor = eventDecryptor,
             paginationTask = paginationTask,
+            realmConfiguration = realmConfiguration,
             fetchTokenAndPaginateTask = fetchTokenAndPaginateTask,
+            fetchThreadTimelineTask = fetchThreadTimelineTask,
             getContextOfEventTask = getEventTask,
             timelineInput = timelineInput,
             timelineEventMapper = timelineEventMapper,
@@ -219,7 +223,15 @@ internal class DefaultTimeline(private val roomId: String,
         updateState(direction) {
             it.copy(loading = true)
         }
-        val loadMoreResult = strategy.loadMore(count, direction, fetchOnServerIfNeeded)
+        val loadMoreResult = try {
+            strategy.loadMore(count, direction, fetchOnServerIfNeeded)
+        } catch (throwable: Throwable) {
+            // Timeline could not be loaded with a (likely) permanent issue, such as the
+            // server now knowing the initialEventId, so we want to show an error message
+            // and possibly restart without initialEventId.
+            onTimelineFailure(throwable)
+            return false
+        }
         Timber.v("$baseLogMessage: result $loadMoreResult")
         val hasMoreToLoad = loadMoreResult != LoadMoreResult.REACHED_END
         updateState(direction) {
@@ -297,7 +309,13 @@ internal class DefaultTimeline(private val roomId: String,
         Timber.v("Post snapshot of ${snapshot.size} events")
         withContext(coroutineDispatchers.main) {
             listeners.forEach {
-                tryOrNull { it.onTimelineUpdated(snapshot) }
+                if (initialEventId != null && isFromThreadTimeline && snapshot.firstOrNull { it.eventId == initialEventId } == null) {
+                    // We are in a thread timeline with a permalink, post update timeline only when the appropriate message have been found
+                    tryOrNull { it.onTimelineUpdated(arrayListOf()) }
+                } else {
+                    // In all the other cases update timeline as expected
+                    tryOrNull { it.onTimelineUpdated(snapshot) }
+                }
             }
         }
     }
@@ -328,6 +346,14 @@ internal class DefaultTimeline(private val roomId: String,
             Timber.v("Post $direction pagination state: $state ")
             listeners.forEach {
                 tryOrNull { it.onStateUpdated(direction, state) }
+            }
+        }
+    }
+
+    private fun onTimelineFailure(throwable: Throwable) {
+        timelineScope.launch(coroutineDispatchers.main) {
+            listeners.forEach {
+                tryOrNull { it.onTimelineFailure(throwable) }
             }
         }
     }

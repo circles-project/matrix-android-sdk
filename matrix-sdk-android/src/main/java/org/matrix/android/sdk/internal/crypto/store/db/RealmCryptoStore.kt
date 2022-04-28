@@ -25,35 +25,35 @@ import io.realm.Realm
 import io.realm.RealmConfiguration
 import io.realm.Sort
 import io.realm.kotlin.where
+import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
 import org.matrix.android.sdk.api.extensions.tryOrNull
+import org.matrix.android.sdk.api.session.crypto.NewSessionListener
+import org.matrix.android.sdk.api.session.crypto.crosssigning.CryptoCrossSigningKey
 import org.matrix.android.sdk.api.session.crypto.crosssigning.MXCrossSigningInfo
+import org.matrix.android.sdk.api.session.crypto.crosssigning.PrivateKeysInfo
+import org.matrix.android.sdk.api.session.crypto.keysbackup.SavedKeyBackupKeyInfo
+import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
+import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
+import org.matrix.android.sdk.api.session.crypto.model.GossipingRequestState
+import org.matrix.android.sdk.api.session.crypto.model.IncomingRoomKeyRequest
+import org.matrix.android.sdk.api.session.crypto.model.IncomingSecretShareRequest
+import org.matrix.android.sdk.api.session.crypto.model.MXUsersDevicesMap
+import org.matrix.android.sdk.api.session.crypto.model.OlmDecryptionResult
+import org.matrix.android.sdk.api.session.crypto.model.OutgoingGossipingRequestState
+import org.matrix.android.sdk.api.session.crypto.model.OutgoingRoomKeyRequest
+import org.matrix.android.sdk.api.session.crypto.model.RoomKeyRequestBody
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.content.RoomKeyWithHeldContent
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.crypto.GossipRequestType
-import org.matrix.android.sdk.internal.crypto.GossipingRequestState
-import org.matrix.android.sdk.internal.crypto.IncomingRoomKeyRequest
-import org.matrix.android.sdk.internal.crypto.IncomingSecretShareRequest
 import org.matrix.android.sdk.internal.crypto.IncomingShareRequestCommon
-import org.matrix.android.sdk.internal.crypto.MXCRYPTO_ALGORITHM_MEGOLM
-import org.matrix.android.sdk.internal.crypto.NewSessionListener
-import org.matrix.android.sdk.internal.crypto.OutgoingGossipingRequestState
-import org.matrix.android.sdk.internal.crypto.OutgoingRoomKeyRequest
 import org.matrix.android.sdk.internal.crypto.OutgoingSecretRequest
-import org.matrix.android.sdk.internal.crypto.algorithms.olm.OlmDecryptionResult
-import org.matrix.android.sdk.internal.crypto.model.CryptoCrossSigningKey
-import org.matrix.android.sdk.internal.crypto.model.CryptoDeviceInfo
-import org.matrix.android.sdk.internal.crypto.model.MXUsersDevicesMap
 import org.matrix.android.sdk.internal.crypto.model.OlmInboundGroupSessionWrapper2
 import org.matrix.android.sdk.internal.crypto.model.OlmSessionWrapper
 import org.matrix.android.sdk.internal.crypto.model.OutboundGroupSessionWrapper
-import org.matrix.android.sdk.internal.crypto.model.event.RoomKeyWithHeldContent
-import org.matrix.android.sdk.internal.crypto.model.rest.DeviceInfo
-import org.matrix.android.sdk.internal.crypto.model.rest.RoomKeyRequestBody
 import org.matrix.android.sdk.internal.crypto.store.IMXCryptoStore
-import org.matrix.android.sdk.internal.crypto.store.PrivateKeysInfo
-import org.matrix.android.sdk.internal.crypto.store.SavedKeyBackupKeyInfo
 import org.matrix.android.sdk.internal.crypto.store.db.mapper.CrossSigningKeysMapper
 import org.matrix.android.sdk.internal.crypto.store.db.model.CrossSigningInfoEntity
 import org.matrix.android.sdk.internal.crypto.store.db.model.CrossSigningInfoEntityFields
@@ -104,7 +104,6 @@ import timber.log.Timber
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
-import kotlin.collections.set
 
 @SessionScope
 internal class RealmCryptoStore @Inject constructor(
@@ -123,12 +122,6 @@ internal class RealmCryptoStore @Inject constructor(
 
     // The olm account
     private var olmAccount: OlmAccount? = null
-
-    // Cache for OlmSession, to release them properly
-    private val olmSessionsToRelease = HashMap<String, OlmSessionWrapper>()
-
-    // Cache for InboundGroupSession, to release them properly
-    private val inboundGroupSessionToRelease = HashMap<String, OlmInboundGroupSessionWrapper2>()
 
     private val newSessionListeners = ArrayList<NewSessionListener>()
 
@@ -213,16 +206,6 @@ internal class RealmCryptoStore @Inject constructor(
             monarchyWriteAsyncExecutor.awaitTermination(1, TimeUnit.MINUTES)
         }
 
-        olmSessionsToRelease.forEach {
-            it.value.olmSession.releaseSession()
-        }
-        olmSessionsToRelease.clear()
-
-        inboundGroupSessionToRelease.forEach {
-            it.value.olmInboundGroupSession?.releaseSession()
-        }
-        inboundGroupSessionToRelease.clear()
-
         olmAccount?.releaseAccount()
 
         realmLocker?.close()
@@ -247,10 +230,18 @@ internal class RealmCryptoStore @Inject constructor(
         }
     }
 
-    override fun getOlmAccount(): OlmAccount {
-        return olmAccount!!
+    /**
+     * Olm account access should be synchronized
+     */
+    override fun <T> doWithOlmAccount(block: (OlmAccount) -> T): T {
+        return olmAccount!!.let { olmAccount ->
+            synchronized(olmAccount) {
+                block.invoke(olmAccount)
+            }
+        }
     }
 
+    @Synchronized
     override fun getOrCreateOlmAccount(): OlmAccount {
         doRealmTransaction(realmConfiguration) {
             val metaData = it.where<CryptoMetadataEntity>().findFirst()
@@ -680,13 +671,6 @@ internal class RealmCryptoStore @Inject constructor(
         if (sessionIdentifier != null) {
             val key = OlmSessionEntity.createPrimaryKey(sessionIdentifier, deviceKey)
 
-            // Release memory of previously known session, if it is not the same one
-            if (olmSessionsToRelease[key]?.olmSession != olmSessionWrapper.olmSession) {
-                olmSessionsToRelease[key]?.olmSession?.releaseSession()
-            }
-
-            olmSessionsToRelease[key] = olmSessionWrapper
-
             doRealmTransaction(realmConfiguration) {
                 val realmOlmSession = OlmSessionEntity().apply {
                     primaryKey = key
@@ -703,23 +687,18 @@ internal class RealmCryptoStore @Inject constructor(
 
     override fun getDeviceSession(sessionId: String, deviceKey: String): OlmSessionWrapper? {
         val key = OlmSessionEntity.createPrimaryKey(sessionId, deviceKey)
-
-        // If not in cache (or not found), try to read it from realm
-        if (olmSessionsToRelease[key] == null) {
-            doRealmQueryAndCopy(realmConfiguration) {
-                it.where<OlmSessionEntity>()
-                        .equalTo(OlmSessionEntityFields.PRIMARY_KEY, key)
-                        .findFirst()
-            }
-                    ?.let {
-                        val olmSession = it.getOlmSession()
-                        if (olmSession != null && it.sessionId != null) {
-                            olmSessionsToRelease[key] = OlmSessionWrapper(olmSession, it.lastReceivedMessageTs)
-                        }
-                    }
+        return doRealmQueryAndCopy(realmConfiguration) {
+            it.where<OlmSessionEntity>()
+                    .equalTo(OlmSessionEntityFields.PRIMARY_KEY, key)
+                    .findFirst()
         }
-
-        return olmSessionsToRelease[key]
+                ?.let {
+                    val olmSession = it.getOlmSession()
+                    if (olmSession != null && it.sessionId != null) {
+                        return@let OlmSessionWrapper(olmSession, it.lastReceivedMessageTs)
+                    }
+                    null
+                }
     }
 
     override fun getLastUsedSessionId(deviceKey: String): String? {
@@ -761,13 +740,6 @@ internal class RealmCryptoStore @Inject constructor(
                 if (sessionIdentifier != null) {
                     val key = OlmInboundGroupSessionEntity.createPrimaryKey(sessionIdentifier, session.senderKey)
 
-                    // Release memory of previously known session, if it is not the same one
-                    if (inboundGroupSessionToRelease[key] != session) {
-                        inboundGroupSessionToRelease[key]?.olmInboundGroupSession?.releaseSession()
-                    }
-
-                    inboundGroupSessionToRelease[key] = session
-
                     val realmOlmInboundGroupSession = OlmInboundGroupSessionEntity().apply {
                         primaryKey = key
                         sessionId = sessionIdentifier
@@ -784,20 +756,12 @@ internal class RealmCryptoStore @Inject constructor(
     override fun getInboundGroupSession(sessionId: String, senderKey: String): OlmInboundGroupSessionWrapper2? {
         val key = OlmInboundGroupSessionEntity.createPrimaryKey(sessionId, senderKey)
 
-        // If not in cache (or not found), try to read it from realm
-        if (inboundGroupSessionToRelease[key] == null) {
-            doWithRealm(realmConfiguration) {
-                it.where<OlmInboundGroupSessionEntity>()
-                        .equalTo(OlmInboundGroupSessionEntityFields.PRIMARY_KEY, key)
-                        .findFirst()
-                        ?.getInboundGroupSession()
-            }
-                    ?.let {
-                        inboundGroupSessionToRelease[key] = it
-                    }
+        return doWithRealm(realmConfiguration) {
+            it.where<OlmInboundGroupSessionEntity>()
+                    .equalTo(OlmInboundGroupSessionEntityFields.PRIMARY_KEY, key)
+                    .findFirst()
+                    ?.getInboundGroupSession()
         }
-
-        return inboundGroupSessionToRelease[key]
     }
 
     override fun getCurrentOutboundGroupSessionForRoom(roomId: String): OutboundGroupSessionWrapper? {
@@ -852,10 +816,6 @@ internal class RealmCryptoStore @Inject constructor(
 
     override fun removeInboundGroupSession(sessionId: String, senderKey: String) {
         val key = OlmInboundGroupSessionEntity.createPrimaryKey(sessionId, senderKey)
-
-        // Release memory of previously known session
-        inboundGroupSessionToRelease[key]?.olmInboundGroupSession?.releaseSession()
-        inboundGroupSessionToRelease.remove(key)
 
         doRealmTransaction(realmConfiguration) {
             it.where<OlmInboundGroupSessionEntity>()

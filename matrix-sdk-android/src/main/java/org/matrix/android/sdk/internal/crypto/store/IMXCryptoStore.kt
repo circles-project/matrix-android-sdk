@@ -18,25 +18,27 @@ package org.matrix.android.sdk.internal.crypto.store
 
 import androidx.lifecycle.LiveData
 import androidx.paging.PagedList
+import org.matrix.android.sdk.api.session.crypto.NewSessionListener
+import org.matrix.android.sdk.api.session.crypto.crosssigning.CryptoCrossSigningKey
 import org.matrix.android.sdk.api.session.crypto.crosssigning.MXCrossSigningInfo
+import org.matrix.android.sdk.api.session.crypto.crosssigning.PrivateKeysInfo
+import org.matrix.android.sdk.api.session.crypto.keysbackup.SavedKeyBackupKeyInfo
+import org.matrix.android.sdk.api.session.crypto.model.CryptoDeviceInfo
+import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
+import org.matrix.android.sdk.api.session.crypto.model.GossipingRequestState
+import org.matrix.android.sdk.api.session.crypto.model.IncomingRoomKeyRequest
+import org.matrix.android.sdk.api.session.crypto.model.MXUsersDevicesMap
+import org.matrix.android.sdk.api.session.crypto.model.OutgoingGossipingRequestState
+import org.matrix.android.sdk.api.session.crypto.model.OutgoingRoomKeyRequest
+import org.matrix.android.sdk.api.session.crypto.model.RoomKeyRequestBody
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.events.model.content.RoomKeyWithHeldContent
 import org.matrix.android.sdk.api.util.Optional
-import org.matrix.android.sdk.internal.crypto.GossipingRequestState
-import org.matrix.android.sdk.internal.crypto.IncomingRoomKeyRequest
 import org.matrix.android.sdk.internal.crypto.IncomingShareRequestCommon
-import org.matrix.android.sdk.internal.crypto.NewSessionListener
-import org.matrix.android.sdk.internal.crypto.OutgoingGossipingRequestState
-import org.matrix.android.sdk.internal.crypto.OutgoingRoomKeyRequest
 import org.matrix.android.sdk.internal.crypto.OutgoingSecretRequest
-import org.matrix.android.sdk.internal.crypto.model.CryptoCrossSigningKey
-import org.matrix.android.sdk.internal.crypto.model.CryptoDeviceInfo
-import org.matrix.android.sdk.internal.crypto.model.MXUsersDevicesMap
 import org.matrix.android.sdk.internal.crypto.model.OlmInboundGroupSessionWrapper2
 import org.matrix.android.sdk.internal.crypto.model.OlmSessionWrapper
 import org.matrix.android.sdk.internal.crypto.model.OutboundGroupSessionWrapper
-import org.matrix.android.sdk.internal.crypto.model.event.RoomKeyWithHeldContent
-import org.matrix.android.sdk.internal.crypto.model.rest.DeviceInfo
-import org.matrix.android.sdk.internal.crypto.model.rest.RoomKeyRequestBody
 import org.matrix.android.sdk.internal.crypto.store.db.model.KeysBackupDataEntity
 import org.matrix.olm.OlmAccount
 import org.matrix.olm.OlmOutboundGroupSession
@@ -54,7 +56,7 @@ internal interface IMXCryptoStore {
     /**
      * @return the olm account
      */
-    fun getOlmAccount(): OlmAccount
+    fun <T> doWithOlmAccount(block: (OlmAccount) -> T): T
 
     fun getOrCreateOlmAccount(): OlmAccount
 
@@ -261,7 +263,7 @@ internal interface IMXCryptoStore {
     fun storeSession(olmSessionWrapper: OlmSessionWrapper, deviceKey: String)
 
     /**
-     * Retrieve the end-to-end session ids between the logged-in user and another
+     * Retrieve all end-to-end session ids between our own device and another
      * device.
      *
      * @param deviceKey the public key of the other device.
@@ -270,7 +272,7 @@ internal interface IMXCryptoStore {
     fun getDeviceSessionIds(deviceKey: String): List<String>?
 
     /**
-     * Retrieve an end-to-end session between the logged-in user and another
+     * Retrieve an end-to-end session between our own device and another
      * device.
      *
      * @param sessionId the session Id.

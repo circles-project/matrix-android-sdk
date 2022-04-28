@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.session.room
 
 import androidx.lifecycle.LiveData
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
 import org.matrix.android.sdk.api.session.crypto.CryptoService
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.Room
@@ -36,6 +37,7 @@ import org.matrix.android.sdk.api.session.room.send.SendService
 import org.matrix.android.sdk.api.session.room.state.StateService
 import org.matrix.android.sdk.api.session.room.tags.TagsService
 import org.matrix.android.sdk.api.session.room.threads.ThreadsService
+import org.matrix.android.sdk.api.session.room.threads.local.ThreadsLocalService
 import org.matrix.android.sdk.api.session.room.timeline.TimelineService
 import org.matrix.android.sdk.api.session.room.typing.TypingService
 import org.matrix.android.sdk.api.session.room.uploads.UploadsService
@@ -43,19 +45,19 @@ import org.matrix.android.sdk.api.session.room.version.RoomVersionService
 import org.matrix.android.sdk.api.session.search.SearchResult
 import org.matrix.android.sdk.api.session.space.Space
 import org.matrix.android.sdk.api.util.Optional
-import org.matrix.android.sdk.internal.crypto.MXCRYPTO_ALGORITHM_MEGOLM
+import org.matrix.android.sdk.api.util.awaitCallback
 import org.matrix.android.sdk.internal.session.permalinks.ViaParameterFinder
 import org.matrix.android.sdk.internal.session.room.state.SendStateTask
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
 import org.matrix.android.sdk.internal.session.search.SearchTask
 import org.matrix.android.sdk.internal.session.space.DefaultSpace
-import org.matrix.android.sdk.internal.util.awaitCallback
 import java.security.InvalidParameterException
 
 internal class DefaultRoom(override val roomId: String,
                            private val roomSummaryDataSource: RoomSummaryDataSource,
                            private val timelineService: TimelineService,
                            private val threadsService: ThreadsService,
+                           private val threadsLocalService: ThreadsLocalService,
                            private val sendService: SendService,
                            private val draftService: DraftService,
                            private val stateService: StateService,
@@ -80,6 +82,7 @@ internal class DefaultRoom(override val roomId: String,
         Room,
         TimelineService by timelineService,
         ThreadsService by threadsService,
+        ThreadsLocalService by threadsLocalService,
         SendService by sendService,
         DraftService by draftService,
         StateService by stateService,
