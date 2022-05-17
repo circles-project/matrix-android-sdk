@@ -62,7 +62,7 @@ internal class DefaultRegistrationWizard(
 
     override val isRegistrationStarted: Boolean
         get() = pendingSessionData.isRegistrationStarted
-    
+
     override suspend fun getRegistrationFlow(): RegistrationResult {
         val params = RegistrationParams()
         return performRegistrationRequest(params)
