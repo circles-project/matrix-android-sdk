@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.api.auth.registration
 
 import org.matrix.android.sdk.api.util.JsonDict
+import org.matrix.android.sdk.internal.auth.registration.AddThreePidRegistrationResponse
 
 /**
  * Set of methods to be able to create an account on a homeserver.
@@ -124,10 +125,4 @@ interface RegistrationWizard {
      * called successfully.
      */
     val isRegistrationStarted: Boolean
-
-    /**
-     * True when login and password have been sent with success to the homeserver, i.e. [createAccount] has been
-     * called successfully.
-     */
-    val currentRegistrationSessionId: String?
 }
