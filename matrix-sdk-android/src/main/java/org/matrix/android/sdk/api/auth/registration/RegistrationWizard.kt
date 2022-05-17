@@ -17,7 +17,6 @@
 package org.matrix.android.sdk.api.auth.registration
 
 import org.matrix.android.sdk.api.util.JsonDict
-import org.matrix.android.sdk.internal.auth.registration.AddThreePidRegistrationResponse
 
 /**
  * Set of methods to be able to create an account on a homeserver.
@@ -79,9 +78,11 @@ interface RegistrationWizard {
     suspend fun dummy(): RegistrationResult
 
     /**
-     * Perform the other stage.
+     * Perform custom registration stage by sending a custom JsonDict.
+     * Current registration "session" param will be included into authParams by default.
+     * The authParams should contain at least one entry "type" with a String value.
      */
-    suspend fun registrationOther(authParams: JsonDict): RegistrationResult
+    suspend fun registrationCustom(authParams: JsonDict): RegistrationResult
 
     /**
      * Perform the "m.login.email.identity" or "m.login.msisdn" stage.

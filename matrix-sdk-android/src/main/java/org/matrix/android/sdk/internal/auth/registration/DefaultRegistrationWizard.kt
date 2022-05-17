@@ -45,7 +45,7 @@ internal class DefaultRegistrationWizard(
     private val registerAddThreePidTask: RegisterAddThreePidTask =
         DefaultRegisterAddThreePidTask(authAPI)
     private val validateCodeTask: ValidateCodeTask = DefaultValidateCodeTask(authAPI)
-    private val registerOtherTask: RegisterOtherTask = DefaultRegisterOtherTask(authAPI)
+    private val registerCustomTask: RegisterCustomTask = DefaultRegisterCustomTask(authAPI)
 
     override val currentThreePid: String?
         get() {
@@ -226,43 +226,43 @@ internal class DefaultRegistrationWizard(
         return performRegistrationRequest(params)
     }
 
-    override suspend fun registrationOther(
-        authParams: JsonDict
+    override suspend fun registrationCustom(
+            authParams: JsonDict
     ): RegistrationResult {
         val safeSession = pendingSessionData.currentSession
-            ?: throw IllegalStateException("developer error, call createAccount() method first")
+                ?: throw IllegalStateException("developer error, call createAccount() method first")
 
         val mutableParams = authParams.toMutableMap()
         mutableParams["session"] = safeSession
 
-        val params = RegistrationOtherParams(auth = mutableParams)
+        val params = RegistrationCustomParams(auth = mutableParams)
         return performRegistrationOtherRequest(params)
     }
 
     private suspend fun performRegistrationRequest(
-        registrationParams: RegistrationParams,
-        delayMillis: Long = 0
+            registrationParams: RegistrationParams,
+            delayMillis: Long = 0
     ): RegistrationResult {
         delay(delayMillis)
         return register { registerTask.execute(RegisterTask.Params(registrationParams)) }
     }
 
     private suspend fun performRegistrationOtherRequest(
-        registrationOtherParams: RegistrationOtherParams
+            registrationCustomParams: RegistrationCustomParams
     ): RegistrationResult {
-        return register { registerOtherTask.execute(RegisterOtherTask.Params(registrationOtherParams)) }
+        return register { registerCustomTask.execute(RegisterCustomTask.Params(registrationCustomParams)) }
     }
 
     private suspend fun register(
-        execute: suspend () -> Credentials
+            execute: suspend () -> Credentials
     ): RegistrationResult {
         val credentials = try {
             execute.invoke()
         } catch (exception: Throwable) {
             if (exception is RegistrationFlowError) {
                 pendingSessionData =
-                    pendingSessionData.copy(currentSession = exception.registrationFlowResponse.session)
-                        .also { pendingSessionStore.savePendingSessionData(it) }
+                        pendingSessionData.copy(currentSession = exception.registrationFlowResponse.session)
+                                .also { pendingSessionStore.savePendingSessionData(it) }
                 return RegistrationResult.FlowResponse(exception.registrationFlowResponse.toFlowResult())
             } else {
                 throw exception
@@ -270,7 +270,7 @@ internal class DefaultRegistrationWizard(
         }
 
         val session =
-            sessionCreator.createSession(credentials, pendingSessionData.homeServerConnectionConfig)
+                sessionCreator.createSession(credentials, pendingSessionData.homeServerConnectionConfig)
         return RegistrationResult.Success(session)
     }
 
