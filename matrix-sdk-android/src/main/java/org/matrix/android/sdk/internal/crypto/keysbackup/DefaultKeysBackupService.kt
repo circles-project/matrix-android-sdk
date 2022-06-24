@@ -28,6 +28,7 @@ import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCallback
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.auth.data.Credentials
+import org.matrix.android.sdk.api.crypto.BCRYPT_ALGORITHM_BACKUP
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM_BACKUP
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
@@ -221,6 +222,57 @@ internal class DefaultKeysBackupService @Inject constructor(
                         algorithm = MXCRYPTO_ALGORITHM_MEGOLM_BACKUP,
                         authData = signedMegolmBackupAuthData,
                         recoveryKey = computeRecoveryKey(olmPkDecryption.privateKey())
+                )
+                uiHandler.post {
+                    callback.onSuccess(creationInfo)
+                }
+            } catch (failure: Throwable) {
+                uiHandler.post {
+                    callback.onFailure(failure)
+                }
+            }
+        }
+    }
+
+    override fun prepareBcryptKeysBackupVersion(userName:String, password: String,
+                                          callback: MatrixCallback<MegolmBackupCreationInfo>) {
+        cryptoCoroutineScope.launch(coroutineDispatchers.io) {
+            try {
+                val generatePrivateKeyResult = BCryptManager.generateBcryptPrivateKeyWithPassword(userName,password)
+                val signalableBackupAuthData = SignalableMegolmBackupAuthData(
+                        publicKey = generatePrivateKeyResult.privateKey.toString(),
+                        privateKeySalt = generatePrivateKeyResult.salt,
+                        privateKeyIterations = generatePrivateKeyResult.iterations
+                    )
+
+                val canonicalJson = JsonCanonicalizer.getCanonicalJson(Map::class.java, signalableBackupAuthData.signalableJSONDictionary())
+
+                val signatures = mutableMapOf<String, MutableMap<String, String>>()
+
+                val deviceSignature = objectSigner.signObject(canonicalJson)
+                deviceSignature.forEach { (userID, content) ->
+                    signatures[userID] = content.toMutableMap()
+                }
+
+                // If we have cross signing add signature, will throw if cross signing not properly configured
+                try {
+                    val crossSign = crossSigningOlm.signObject(CrossSigningOlm.KeyType.MASTER, canonicalJson)
+                    signatures[credentials.userId]?.putAll(crossSign)
+                } catch (failure: Throwable) {
+                    // ignore and log
+                    Timber.w(failure, "prepareKeysBackupVersion: failed to sign with cross signing keys")
+                }
+
+                val signedBackupAuthData = MegolmBackupAuthData(
+                    publicKey = signalableBackupAuthData.publicKey,
+                    privateKeySalt = signalableBackupAuthData.privateKeySalt,
+                    privateKeyIterations = signalableBackupAuthData.privateKeyIterations,
+                    signatures = signatures
+                )
+                val creationInfo = MegolmBackupCreationInfo(
+                    algorithm = BCRYPT_ALGORITHM_BACKUP,
+                    authData = signedBackupAuthData,
+                    recoveryKey = generatePrivateKeyResult.privateKey.toString()
                 )
                 uiHandler.post {
                     callback.onSuccess(creationInfo)

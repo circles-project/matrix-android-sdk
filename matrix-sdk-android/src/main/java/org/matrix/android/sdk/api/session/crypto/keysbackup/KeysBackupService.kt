@@ -118,6 +118,9 @@ interface KeysBackupService {
                                  progressListener: ProgressListener?,
                                  callback: MatrixCallback<MegolmBackupCreationInfo>)
 
+
+    fun prepareBcryptKeysBackupVersion(userName:String, password: String,
+                                 callback: MatrixCallback<MegolmBackupCreationInfo>)
     /**
      * Delete a keys backup version. It will delete all backed up keys on the server, and the backup itself.
      * If we are backing up to this version. Backup will be stopped.
