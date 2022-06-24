@@ -35,26 +35,26 @@ import retrofit2.http.*
  */
 internal interface AuthAPI {
     /**
-     * Get a Web client config file, using the name including the domain
+     * Get a Web client config file, using the name including the domain.
      */
     @GET("config.{domain}.json")
     suspend fun getWebClientConfigDomain(@Path("domain") domain: String): WebClientConfig
 
     /**
-     * Get a Web client default config file
+     * Get a Web client default config file.
      */
     @GET("config.json")
     suspend fun getWebClientConfig(): WebClientConfig
 
     /**
-     * Get the version information of the homeserver
+     * Get the version information of the homeserver.
      */
     @GET(NetworkConstants.URI_API_PREFIX_PATH_ + "versions")
     suspend fun versions(): Versions
 
     /**
-     * Register to the homeserver, or get error 401 with a RegistrationFlowResponse object if registration is incomplete
-     * Ref: https://matrix.org/docs/spec/client_server/latest#account-registration-and-management
+     * Register to the homeserver, or get error 401 with a RegistrationFlowResponse object if registration is incomplete.
+     * Ref: https://matrix.org/docs/spec/client_server/latest#account-registration-and-management.
      */
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "register")
     suspend fun register(@Body registrationParams: RegistrationParams): Credentials
@@ -94,7 +94,7 @@ internal interface AuthAPI {
     ): AddThreePidRegistrationResponse
 
     /**
-     * Validate 3pid
+     * Validate 3pid.
      */
     @Headers("Content-Type: application/json")
     @POST
@@ -104,7 +104,7 @@ internal interface AuthAPI {
     ): SuccessResult
 
     /**
-     * Get the supported login flow
+     * Get the supported login flow.
      * Ref: https://matrix.org/docs/spec/client_server/latest#get-matrix-client-r0-login
      */
     @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "login")
