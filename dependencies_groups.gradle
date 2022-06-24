@@ -40,6 +40,7 @@ ext.groups = [
                 regex: [
                 ],
                 group: [
+                        'at.favre.lib',
                         'ch.qos.logback',
                         'com.adevinta.android',
                         'com.airbnb.android',
