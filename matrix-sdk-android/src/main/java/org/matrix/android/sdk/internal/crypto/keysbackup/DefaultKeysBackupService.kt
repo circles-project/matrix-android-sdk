@@ -1182,6 +1182,28 @@ internal class DefaultKeysBackupService @Inject constructor(
         return computeRecoveryKey(data)
     }
 
+    @WorkerThread
+    private fun recoveryBcryptKeyFromPassword(password: String, keysBackupData: KeysVersionResult): String? {
+        val authData = getMegolmBackupAuthData(keysBackupData)
+
+        if (authData == null) {
+            Timber.w("recoveryKeyFromPassword: invalid parameter")
+            return null
+        }
+
+        if (authData.privateKeySalt.isNullOrBlank() ||
+            authData.privateKeyIterations == null) {
+            Timber.w("recoveryKeyFromPassword: Salt and/or iterations not found in key backup auth data")
+
+            return null
+        }
+
+        // Extract the recovery key from the passphrase
+        val data = BCryptManager.retrievePrivateKeyWithPassword(password, authData.privateKeySalt, authData.privateKeyIterations)
+
+        return data.toString()
+    }
+
     /**
      * Check if a recovery key matches key backup authentication data.
      *
