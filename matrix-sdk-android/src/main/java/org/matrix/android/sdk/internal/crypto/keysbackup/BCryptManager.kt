@@ -8,7 +8,6 @@ internal object BCryptManager {
     private const val iterations = 14
     private const val saltLength = 16
 
-
     fun generateBcryptPrivateKeyWithPassword(
         userName: String,
         password: String
@@ -18,10 +17,14 @@ internal object BCryptManager {
         return GeneratePrivateKeyResult(privateKey, salt.toString(), iterations)
     }
 
+    fun retrievePrivateKeyWithPassword(
+        password: String,
+        salt: String,
+        iterations: Int
+    ): ByteArray = BCrypt.withDefaults().hash(iterations, salt.toByteArray(), password.toByteArray())
 
     private fun String.sha256(): String = MessageDigest
         .getInstance("SHA-256")
         .digest(this.toByteArray())
         .fold("") { str, it -> str + "%02x".format(it) }
-
 }
