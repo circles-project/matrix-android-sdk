@@ -907,6 +907,43 @@ internal class DefaultKeysBackupService @Inject constructor(
         }
     }
 
+    override fun restoreBcryptKeyBackupWithPassword(keysBackupVersion: KeysVersionResult,
+                                              password: String,
+                                              roomId: String?,
+                                              sessionId: String?,
+                                              stepProgressListener: StepProgressListener?,
+                                              callback: MatrixCallback<ImportRoomKeysResult>) {
+        Timber.v("[MXKeyBackup] restoreKeyBackup with password: From backup version: ${keysBackupVersion.version}")
+
+        cryptoCoroutineScope.launch(coroutineDispatchers.io) {
+            runCatching {
+                val recoveryKey = withContext(coroutineDispatchers.crypto) {
+                    recoveryBcryptKeyFromPassword(password, keysBackupVersion)
+                }
+                if (recoveryKey == null) {
+                    Timber.v("backupKeys: Invalid configuration")
+                    throw IllegalStateException("Invalid configuration")
+                } else {
+                    awaitCallback<ImportRoomKeysResult> {
+                        restoreBcryptKeysWithRecoveryKey(keysBackupVersion, recoveryKey, roomId, sessionId, stepProgressListener, it)
+                    }
+                }
+            }.foldToCallback(object : MatrixCallback<ImportRoomKeysResult> {
+                override fun onSuccess(data: ImportRoomKeysResult) {
+                    uiHandler.post {
+                        callback.onSuccess(data)
+                    }
+                }
+
+                override fun onFailure(failure: Throwable) {
+                    uiHandler.post {
+                        callback.onFailure(failure)
+                    }
+                }
+            })
+        }
+    }
+
     /**
      * Same method as [RoomKeysRestClient.getRoomKey] except that it accepts nullable
      * parameters and always returns a KeysBackupData object through the Callback.
