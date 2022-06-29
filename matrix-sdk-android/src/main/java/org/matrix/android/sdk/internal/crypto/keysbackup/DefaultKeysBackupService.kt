@@ -238,11 +238,12 @@ internal class DefaultKeysBackupService @Inject constructor(
                                           callback: MatrixCallback<MegolmBackupCreationInfo>) {
         cryptoCoroutineScope.launch(coroutineDispatchers.io) {
             try {
+                val olmPkDecryption = OlmPkDecryption()
                 val generatePrivateKeyResult = BCryptManager.generateBcryptPrivateKeyWithPassword(userName,password)
-                val signalableBackupAuthData = SignalableMegolmBackupAuthData(
-                        publicKey = generatePrivateKeyResult.privateKey.toString(),
-                        privateKeySalt = generatePrivateKeyResult.salt,
-                        privateKeyIterations = generatePrivateKeyResult.iterations
+                val signalableBackupAuthData =  SignalableMegolmBackupAuthData(
+                    publicKey = olmPkDecryption.setPrivateKey(generatePrivateKeyResult.privateKey),
+                    privateKeySalt = generatePrivateKeyResult.salt,
+                    privateKeyIterations = generatePrivateKeyResult.iterations
                     )
 
                 val canonicalJson = JsonCanonicalizer.getCanonicalJson(Map::class.java, signalableBackupAuthData.signalableJSONDictionary())
@@ -272,7 +273,7 @@ internal class DefaultKeysBackupService @Inject constructor(
                 val creationInfo = MegolmBackupCreationInfo(
                     algorithm = BCRYPT_ALGORITHM_BACKUP,
                     authData = signedBackupAuthData,
-                    recoveryKey = generatePrivateKeyResult.privateKey.toString()
+                    recoveryKey = computeRecoveryKey(olmPkDecryption.privateKey())
                 )
                 uiHandler.post {
                     callback.onSuccess(creationInfo)
@@ -907,43 +908,6 @@ internal class DefaultKeysBackupService @Inject constructor(
         }
     }
 
-    override fun restoreBcryptKeyBackupWithPassword(keysBackupVersion: KeysVersionResult,
-                                              password: String,
-                                              roomId: String?,
-                                              sessionId: String?,
-                                              stepProgressListener: StepProgressListener?,
-                                              callback: MatrixCallback<ImportRoomKeysResult>) {
-        Timber.v("[MXKeyBackup] restoreKeyBackup with password: From backup version: ${keysBackupVersion.version}")
-
-        cryptoCoroutineScope.launch(coroutineDispatchers.io) {
-            runCatching {
-                val recoveryKey = withContext(coroutineDispatchers.crypto) {
-                    recoveryBcryptKeyFromPassword(password, keysBackupVersion)
-                }
-                if (recoveryKey == null) {
-                    Timber.v("backupKeys: Invalid configuration")
-                    throw IllegalStateException("Invalid configuration")
-                } else {
-                    awaitCallback<ImportRoomKeysResult> {
-                        restoreBcryptKeysWithRecoveryKey(keysBackupVersion, recoveryKey, roomId, sessionId, stepProgressListener, it)
-                    }
-                }
-            }.foldToCallback(object : MatrixCallback<ImportRoomKeysResult> {
-                override fun onSuccess(data: ImportRoomKeysResult) {
-                    uiHandler.post {
-                        callback.onSuccess(data)
-                    }
-                }
-
-                override fun onFailure(failure: Throwable) {
-                    uiHandler.post {
-                        callback.onFailure(failure)
-                    }
-                }
-            })
-        }
-    }
-
     /**
      * Same method as [RoomKeysRestClient.getRoomKey] except that it accepts nullable
      * parameters and always returns a KeysBackupData object through the Callback.
@@ -1184,7 +1148,8 @@ internal class DefaultKeysBackupService @Inject constructor(
      */
     private fun getMegolmBackupAuthData(keysBackupData: KeysVersionResult): MegolmBackupAuthData? {
         return keysBackupData
-                .takeIf { it.version.isNotEmpty() && it.algorithm == MXCRYPTO_ALGORITHM_MEGOLM_BACKUP }
+                .takeIf { it.version.isNotEmpty() &&
+                        (it.algorithm == MXCRYPTO_ALGORITHM_MEGOLM_BACKUP || it.algorithm== BCRYPT_ALGORITHM_BACKUP) }
                 ?.getAuthDataAsMegolmBackupAuthData()
                 ?.takeIf { it.publicKey.isNotEmpty() }
     }
@@ -1214,31 +1179,12 @@ internal class DefaultKeysBackupService @Inject constructor(
         }
 
         // Extract the recovery key from the passphrase
-        val data = retrievePrivateKeyWithPassword(password, authData.privateKeySalt, authData.privateKeyIterations, progressListener)
-
+        val data = if(keysBackupData.algorithm == MXCRYPTO_ALGORITHM_MEGOLM_BACKUP){
+            retrievePrivateKeyWithPassword(password, authData.privateKeySalt, authData.privateKeyIterations, progressListener)
+        }else{
+            BCryptManager.retrievePrivateKeyWithPassword(password, authData.privateKeySalt, authData.privateKeyIterations)
+        }
         return computeRecoveryKey(data)
-    }
-
-    @WorkerThread
-    private fun recoveryBcryptKeyFromPassword(password: String, keysBackupData: KeysVersionResult): String? {
-        val authData = getMegolmBackupAuthData(keysBackupData)
-
-        if (authData == null) {
-            Timber.w("recoveryKeyFromPassword: invalid parameter")
-            return null
-        }
-
-        if (authData.privateKeySalt.isNullOrBlank() ||
-            authData.privateKeyIterations == null) {
-            Timber.w("recoveryKeyFromPassword: Salt and/or iterations not found in key backup auth data")
-
-            return null
-        }
-
-        // Extract the recovery key from the passphrase
-        val data = BCryptManager.retrievePrivateKeyWithPassword(password, authData.privateKeySalt, authData.privateKeyIterations)
-
-        return data.toString()
     }
 
     /**

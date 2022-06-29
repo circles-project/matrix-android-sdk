@@ -16,6 +16,7 @@
 
 package org.matrix.android.sdk.internal.crypto.keysbackup.model.rest
 
+import org.matrix.android.sdk.api.crypto.BCRYPT_ALGORITHM_BACKUP
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM_BACKUP
 import org.matrix.android.sdk.api.session.crypto.keysbackup.MegolmBackupAuthData
 import org.matrix.android.sdk.api.util.JsonDict
@@ -55,7 +56,7 @@ internal interface KeysAlgorithmAndData {
      */
     fun getAuthDataAsMegolmBackupAuthData(): MegolmBackupAuthData? {
         return MoshiProvider.providesMoshi()
-                .takeIf { algorithm == MXCRYPTO_ALGORITHM_MEGOLM_BACKUP }
+                .takeIf { algorithm == MXCRYPTO_ALGORITHM_MEGOLM_BACKUP || algorithm == BCRYPT_ALGORITHM_BACKUP }
                 ?.adapter(MegolmBackupAuthData::class.java)
                 ?.fromJsonValue(authData)
     }

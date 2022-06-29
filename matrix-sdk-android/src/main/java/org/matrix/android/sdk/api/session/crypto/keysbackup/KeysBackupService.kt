@@ -189,12 +189,6 @@ interface KeysBackupService {
                                    stepProgressListener: StepProgressListener?,
                                    callback: MatrixCallback<ImportRoomKeysResult>)
 
-    fun restoreBcryptKeysWithRecoveryKey(keysVersionResult: KeysVersionResult,
-                                   recoveryKey: String, roomId: String?,
-                                   sessionId: String?,
-                                   stepProgressListener: StepProgressListener?,
-                                   callback: MatrixCallback<ImportRoomKeysResult>)
-
     /**
      * Restore a backup with a password from a given backup version stored on the homeserver.
      *
@@ -206,13 +200,6 @@ interface KeysBackupService {
      * @param callback Callback. It provides the number of found keys and the number of successfully imported keys.
      */
     fun restoreKeyBackupWithPassword(keysBackupVersion: KeysVersionResult,
-                                     password: String,
-                                     roomId: String?,
-                                     sessionId: String?,
-                                     stepProgressListener: StepProgressListener?,
-                                     callback: MatrixCallback<ImportRoomKeysResult>)
-
-    fun restoreBcryptKeyBackupWithPassword(keysBackupVersion: KeysVersionResult,
                                      password: String,
                                      roomId: String?,
                                      sessionId: String?,
