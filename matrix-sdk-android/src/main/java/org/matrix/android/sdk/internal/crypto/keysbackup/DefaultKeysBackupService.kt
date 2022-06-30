@@ -238,11 +238,12 @@ internal class DefaultKeysBackupService @Inject constructor(
                                           callback: MatrixCallback<MegolmBackupCreationInfo>) {
         cryptoCoroutineScope.launch(coroutineDispatchers.io) {
             try {
+                val olmPkDecryption = OlmPkDecryption()
                 val generatePrivateKeyResult = BCryptManager.generateBcryptPrivateKeyWithPassword(userName,password)
-                val signalableBackupAuthData = SignalableMegolmBackupAuthData(
-                        publicKey = generatePrivateKeyResult.privateKey.toString(),
-                        privateKeySalt = generatePrivateKeyResult.salt,
-                        privateKeyIterations = generatePrivateKeyResult.iterations
+                val signalableBackupAuthData =  SignalableMegolmBackupAuthData(
+                    publicKey = olmPkDecryption.setPrivateKey(generatePrivateKeyResult.privateKey),
+                    privateKeySalt = generatePrivateKeyResult.salt,
+                    privateKeyIterations = generatePrivateKeyResult.iterations
                     )
 
                 val canonicalJson = JsonCanonicalizer.getCanonicalJson(Map::class.java, signalableBackupAuthData.signalableJSONDictionary())
@@ -272,7 +273,7 @@ internal class DefaultKeysBackupService @Inject constructor(
                 val creationInfo = MegolmBackupCreationInfo(
                     algorithm = BCRYPT_ALGORITHM_BACKUP,
                     authData = signedBackupAuthData,
-                    recoveryKey = generatePrivateKeyResult.privateKey.toString()
+                    recoveryKey = computeRecoveryKey(olmPkDecryption.privateKey())
                 )
                 uiHandler.post {
                     callback.onSuccess(creationInfo)
@@ -1147,7 +1148,8 @@ internal class DefaultKeysBackupService @Inject constructor(
      */
     private fun getMegolmBackupAuthData(keysBackupData: KeysVersionResult): MegolmBackupAuthData? {
         return keysBackupData
-                .takeIf { it.version.isNotEmpty() && it.algorithm == MXCRYPTO_ALGORITHM_MEGOLM_BACKUP }
+                .takeIf { it.version.isNotEmpty() &&
+                        (it.algorithm == MXCRYPTO_ALGORITHM_MEGOLM_BACKUP || it.algorithm== BCRYPT_ALGORITHM_BACKUP) }
                 ?.getAuthDataAsMegolmBackupAuthData()
                 ?.takeIf { it.publicKey.isNotEmpty() }
     }
@@ -1177,8 +1179,11 @@ internal class DefaultKeysBackupService @Inject constructor(
         }
 
         // Extract the recovery key from the passphrase
-        val data = retrievePrivateKeyWithPassword(password, authData.privateKeySalt, authData.privateKeyIterations, progressListener)
-
+        val data = if(keysBackupData.algorithm == MXCRYPTO_ALGORITHM_MEGOLM_BACKUP){
+            retrievePrivateKeyWithPassword(password, authData.privateKeySalt, authData.privateKeyIterations, progressListener)
+        }else{
+            BCryptManager.retrievePrivateKeyWithPassword(password, authData.privateKeySalt, authData.privateKeyIterations)
+        }
         return computeRecoveryKey(data)
     }
 
