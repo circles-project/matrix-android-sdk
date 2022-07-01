@@ -31,7 +31,7 @@ const val MXCRYPTO_ALGORITHM_MEGOLM = "m.megolm.v1.aes-sha2"
  */
 const val MXCRYPTO_ALGORITHM_MEGOLM_BACKUP = "m.megolm_backup.v1.curve25519-aes-sha2"
 
-const val BCRYPT_ALGORITHM_BACKUP = "m.bcrypt"
+const val BCRYPT_ALGORITHM_BACKUP = "org.futo.bcrypt"
 
 /**
  * Secured Shared Storage algorithm constant.
