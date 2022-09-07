@@ -26,12 +26,13 @@ publishing {
             pom.withXml {
                 def dependenciesNode = asNode().appendNode('dependencies')
                 ext.addDependency = { Dependency dep, String scope ->
-                    if (dep.group == null || dep.version == null || dep.name == null || dep.name == "unspecified")
+                    if (dep.group == null || dep.name == null || dep.name == "unspecified")
                         return
                     final dependencyNode = dependenciesNode.appendNode('dependency')
                     dependencyNode.appendNode('groupId', dep.group)
                     dependencyNode.appendNode('artifactId', dep.name)
-                    dependencyNode.appendNode('version', dep.version)
+                    if (dep.version != null)
+                        dependencyNode.appendNode('version', dep.version)
                     dependencyNode.appendNode('scope', scope)
                 }
                 configurations.api.getDependencies().each { dep -> addDependency(dep, "compile") }
