@@ -1,5 +1,28 @@
 Please also refer to the Changelog of Element Android: https://github.com/vector-im/element-android/blob/main/CHANGES.md
 
+Changes in Element v1.4.34 (2022-08-30)
+=======================================
+
+Imported from Element 1.4.34. (https://github.com/vector-im/element-android/releases/tag/v1.4.34)
+
+SDK API changes ⚠️
+------------------
+
+- Rename `DebugService.logDbUsageInfo` (resp. `Session.logDbUsageInfo`) to `DebugService.getDbUsageInfo` (resp. `Session.getDbUsageInfo`) and return a String instead of logging. The caller may want to log the String. ([#6884](https://github.com/vector-im/element-android/issues/6884))
+
+Changes in Element v1.4.32 (2022-08-10)
+=======================================
+
+Imported from Element 1.4.32. (https://github.com/vector-im/element-android/releases/tag/v1.4.32)
+
+Changes in Element v1.4.30 (2022-07-29)
+=======================================
+
+SDK API changes ⚠️
+------------------
+- Communities/Groups are removed completely ([#5733](https://github.com/vector-im/element-android/issues/5733))
+- SDK - The SpaceFilter is query parameter is no longer nullable, use SpaceFilter.NoFilter instead ([#6666](https://github.com/vector-im/element-android/issues/6666))
+
 Changes in Matrix-SDK 1.4.27 (2022-07-20)
 ===================================================
 
