@@ -125,4 +125,7 @@ interface RegistrationWizard {
      * called successfully.
      */
     fun isRegistrationStarted(): Boolean
+
+    //Added to support few registration flows
+    suspend fun getAllRegistrationFlows(): List<List<Stage>>
 }

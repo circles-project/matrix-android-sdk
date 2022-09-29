@@ -20,7 +20,12 @@ import kotlinx.coroutines.delay
 import org.matrix.android.sdk.api.auth.LoginType
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.auth.data.LoginFlowTypes
-import org.matrix.android.sdk.api.auth.registration.*
+import org.matrix.android.sdk.api.auth.registration.RegisterThreePid
+import org.matrix.android.sdk.api.auth.registration.RegistrationAvailability
+import org.matrix.android.sdk.api.auth.registration.RegistrationResult
+import org.matrix.android.sdk.api.auth.registration.RegistrationWizard
+import org.matrix.android.sdk.api.auth.registration.Stage
+import org.matrix.android.sdk.api.auth.registration.toFlowResult
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.Failure.RegistrationFlowError
 import org.matrix.android.sdk.api.util.JsonDict
@@ -264,5 +269,39 @@ internal class DefaultRegistrationWizard(
 
     override suspend fun registrationAvailable(userName: String): RegistrationAvailability {
         return registerAvailableTask.execute(RegisterAvailableTask.Params(userName))
+    }
+
+    //Added to support few registration flows
+    override suspend fun getAllRegistrationFlows(): List<List<Stage>> {
+        try {
+            registerTask.execute(RegisterTask.Params(RegistrationParams()))
+        } catch (exception: Throwable) {
+            return if (exception is RegistrationFlowError) {
+                pendingSessionData =
+                        pendingSessionData.copy(currentSession = exception.registrationFlowResponse.session)
+                                .also { pendingSessionStore.savePendingSessionData(it) }
+                val flowResponse = exception.registrationFlowResponse
+                val missingStages = flowResponse.toFlowResult().missingStages
+
+                val flowsWithStages = flowResponse.flows?.mapNotNull { it.stages }?.map { flow ->
+                    flow.mapNotNull { type -> missingStages.findStageForType(type) }
+                } ?: emptyList()
+
+                flowsWithStages
+            } else {
+                emptyList()
+            }
+        }
+        return emptyList()
+    }
+
+    //Added to support few registration flows
+    private fun List<Stage>.findStageForType(type: String): Stage? = when (type) {
+        LoginFlowTypes.RECAPTCHA      -> firstOrNull { it is Stage.ReCaptcha }
+        LoginFlowTypes.DUMMY          -> firstOrNull { it is Stage.Dummy }
+        LoginFlowTypes.TERMS          -> firstOrNull { it is Stage.Terms }
+        LoginFlowTypes.EMAIL_IDENTITY -> firstOrNull { it is Stage.Email }
+        LoginFlowTypes.MSISDN         -> firstOrNull { it is Stage.Msisdn }
+        else                          -> firstOrNull { (it as? Stage.Other)?.type == type }
     }
 }
