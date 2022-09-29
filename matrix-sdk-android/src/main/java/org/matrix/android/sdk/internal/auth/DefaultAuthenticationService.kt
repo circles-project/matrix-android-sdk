@@ -280,7 +280,7 @@ internal class DefaultAuthenticationService @Inject constructor(
 
                 getLoginFlowResult(newAuthAPI, versions, wellknownResult.homeServerUrl)
             }
-            else -> throw Failure.OtherServerError("", HttpsURLConnection.HTTP_NOT_FOUND /* 404 */)
+            else                      -> throw Failure.OtherServerError("", HttpsURLConnection.HTTP_NOT_FOUND /* 404 */)
         }
     }
 
@@ -414,5 +414,41 @@ internal class DefaultAuthenticationService @Inject constructor(
                 .newBuilder()
                 .addSocketFactory(homeServerConnectionConfig)
                 .build()
+    }
+
+    //Added to initiate auth without GET /login
+    override suspend fun initiateAuth(homeServerConnectionConfig: HomeServerConnectionConfig): String {
+        val result = runCatching {
+            getHomeServerUserFromWellKnown(homeServerConnectionConfig)
+        }
+        return result.fold(
+                {
+                    val alteredHomeServerConnectionConfig = homeServerConnectionConfig.copy(
+                            homeServerUriBase = Uri.parse(it)
+                    )
+
+                    pendingSessionData = PendingSessionData(alteredHomeServerConnectionConfig)
+                            .also { data -> pendingSessionStore.savePendingSessionData(data) }
+                    it
+                },
+                {
+                    if (it is UnrecognizedCertificateException) {
+                        throw Failure.UnrecognizedCertificateFailure(homeServerConnectionConfig.homeServerUriBase.toString(), it.fingerprint)
+                    } else {
+                        throw it
+                    }
+                }
+        )
+    }
+
+    //Added to initiate auth without GET /login
+    private suspend fun getHomeServerUserFromWellKnown(homeServerConnectionConfig: HomeServerConnectionConfig): String {
+        val domain = homeServerConnectionConfig.homeServerUri.host
+                ?: throw Failure.OtherServerError("", HttpsURLConnection.HTTP_NOT_FOUND /* 404 */)
+
+        return when (val wellKnownResult = getWellknownTask.execute(GetWellknownTask.Params(domain, homeServerConnectionConfig))) {
+            is WellknownResult.Prompt -> wellKnownResult.homeServerUrl
+            else                      -> throw Failure.OtherServerError("", HttpsURLConnection.HTTP_NOT_FOUND /* 404 */)
+        }
     }
 }

@@ -124,4 +124,10 @@ interface AuthenticationService {
             initialDeviceName: String,
             deviceId: String? = null
     ): Session
+
+    /**
+     * //Added to initiate auth without GET /login
+     * @return wellKnownResult.homeServerUrl
+     */
+    suspend fun initiateAuth(homeServerConnectionConfig: HomeServerConnectionConfig): String
 }
