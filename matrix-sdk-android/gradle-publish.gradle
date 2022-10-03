@@ -3,7 +3,7 @@ apply plugin: 'maven-publish'
 
 def groupIdString = "org.matrix.android"
 def artifactIdString = "matrix-sdk-android"
-def versionName = "1.5.1.1"
+def versionName = "1.5.1.2"
 def artifactPath = "$buildDir/outputs/aar/$artifactIdString-release.aar"
 def publicationName = "release"
 def projectId = "16"
