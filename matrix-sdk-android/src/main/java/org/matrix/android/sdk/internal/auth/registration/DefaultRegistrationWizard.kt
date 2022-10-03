@@ -33,6 +33,7 @@ import org.matrix.android.sdk.internal.auth.AuthAPI
 import org.matrix.android.sdk.internal.auth.PendingSessionStore
 import org.matrix.android.sdk.internal.auth.SessionCreator
 import org.matrix.android.sdk.internal.auth.db.PendingSessionData
+import org.matrix.android.sdk.internal.auth.findStageForType
 
 /**
  * This class execute the registration request and is responsible to keep the session of interactive authentication.
@@ -293,16 +294,6 @@ internal class DefaultRegistrationWizard(
             }
         }
         return emptyList()
-    }
-
-    //Added to support few registration flows
-    private fun List<Stage>.findStageForType(type: String): Stage? = when (type) {
-        LoginFlowTypes.RECAPTCHA      -> firstOrNull { it is Stage.ReCaptcha }
-        LoginFlowTypes.DUMMY          -> firstOrNull { it is Stage.Dummy }
-        LoginFlowTypes.TERMS          -> firstOrNull { it is Stage.Terms }
-        LoginFlowTypes.EMAIL_IDENTITY -> firstOrNull { it is Stage.Email }
-        LoginFlowTypes.MSISDN         -> firstOrNull { it is Stage.Msisdn }
-        else                          -> firstOrNull { (it as? Stage.Other)?.type == type }
     }
 
     override suspend fun registrationSwiclops(
