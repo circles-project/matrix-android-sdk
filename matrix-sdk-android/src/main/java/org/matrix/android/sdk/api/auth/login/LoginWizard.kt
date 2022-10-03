@@ -16,6 +16,8 @@
 
 package org.matrix.android.sdk.api.auth.login
 
+import org.matrix.android.sdk.api.auth.registration.RegistrationResult
+import org.matrix.android.sdk.api.auth.registration.Stage
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.util.JsonDict
 
@@ -77,4 +79,14 @@ interface LoginWizard {
      * if [org.matrix.android.sdk.api.auth.data.LoginFlowResult.isLogoutDevicesSupported] is true.
      */
     suspend fun resetPasswordMailConfirmed(newPassword: String, logoutAllDevices: Boolean = true)
+
+    //Added to support few login flows
+    suspend fun getAllLoginFlows(): List<List<Stage>>
+
+    /**
+     * Perform custom login stage by sending a custom JsonDict.
+     * Current login "session" param will be included into authParams by default.
+     * The authParams should contain at least one entry "type" with a String value.
+     */
+    suspend fun loginStageCustom(authParams: JsonDict): RegistrationResult
 }
