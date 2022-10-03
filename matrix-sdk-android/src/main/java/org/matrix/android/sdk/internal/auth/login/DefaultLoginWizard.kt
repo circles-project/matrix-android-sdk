@@ -17,10 +17,16 @@
 package org.matrix.android.sdk.internal.auth.login
 
 import android.util.Patterns
+import kotlinx.coroutines.delay
 import org.matrix.android.sdk.api.auth.LoginType
+import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.auth.login.LoginProfileInfo
 import org.matrix.android.sdk.api.auth.login.LoginWizard
 import org.matrix.android.sdk.api.auth.registration.RegisterThreePid
+import org.matrix.android.sdk.api.auth.registration.RegistrationResult
+import org.matrix.android.sdk.api.auth.registration.Stage
+import org.matrix.android.sdk.api.auth.registration.toFlowResult
+import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.internal.auth.AuthAPI
@@ -30,8 +36,13 @@ import org.matrix.android.sdk.internal.auth.data.PasswordLoginParams
 import org.matrix.android.sdk.internal.auth.data.ThreePidMedium
 import org.matrix.android.sdk.internal.auth.data.TokenLoginParams
 import org.matrix.android.sdk.internal.auth.db.PendingSessionData
+import org.matrix.android.sdk.internal.auth.findStageForType
 import org.matrix.android.sdk.internal.auth.registration.AddThreePidRegistrationParams
+import org.matrix.android.sdk.internal.auth.registration.DefaultRegisterTask
 import org.matrix.android.sdk.internal.auth.registration.RegisterAddThreePidTask
+import org.matrix.android.sdk.internal.auth.registration.RegisterTask
+import org.matrix.android.sdk.internal.auth.registration.RegistrationCustomParams
+import org.matrix.android.sdk.internal.auth.registration.RegistrationParams
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.content.DefaultContentUrlResolver
 import org.matrix.android.sdk.internal.session.contentscanner.DisabledContentScannerService
@@ -48,6 +59,8 @@ internal class DefaultLoginWizard(
             authAPI,
             DefaultContentUrlResolver(pendingSessionData.homeServerConnectionConfig, DisabledContentScannerService())
     )
+
+    private val loginFlowTask: LoginFlowTask = DefaultLoginFlowTask(authAPI)
 
     override suspend fun getProfileInfo(matrixId: String): LoginProfileInfo {
         return getProfileTask.execute(GetProfileTask.Params(matrixId))
@@ -137,5 +150,72 @@ internal class DefaultLoginWizard(
 
         // Set to null?
         // resetPasswordData = null
+    }
+
+    //Added to support few login flows
+    override suspend fun getAllLoginFlows(): List<List<Stage>> {
+        try {
+            loginFlowTask.execute(LoginFlowTask.Params(LoginFlowParams()))
+        } catch (exception: Throwable) {
+            return if (exception is Failure.RegistrationFlowError) {
+                pendingSessionData =
+                        pendingSessionData.copy(currentSession = exception.registrationFlowResponse.session)
+                                .also { pendingSessionStore.savePendingSessionData(it) }
+                val flowResponse = exception.registrationFlowResponse
+                val missingStages = flowResponse.toFlowResult().missingStages
+
+                val flowsWithStages = flowResponse.flows?.mapNotNull { it.stages }?.map { flow ->
+                    flow.mapNotNull { type -> missingStages.findStageForType(type) }
+                } ?: emptyList()
+
+                flowsWithStages
+            } else {
+                emptyList()
+            }
+        }
+        return emptyList()
+    }
+
+    //Added to support few login flows
+    override suspend fun loginStageCustom(
+            authParams: JsonDict
+    ): RegistrationResult {
+        val safeSession = pendingSessionData.currentSession
+                ?: throw IllegalStateException("developer error, call createAccount() method first")
+
+        val mutableParams = authParams.toMutableMap()
+        mutableParams["session"] = safeSession
+
+        val params = LoginFlowParams(auth = mutableParams)
+        return performRegistrationRequest(LoginType.CUSTOM, params)
+    }
+
+    private suspend fun performRegistrationRequest(
+            loginType: LoginType,
+            loginParams: LoginFlowParams
+    ): RegistrationResult {
+        return login(loginType) { loginFlowTask.execute(LoginFlowTask.Params(loginParams)) }
+    }
+
+    //Added to support few login flows
+    private suspend fun login(
+            loginType: LoginType,
+            execute: suspend () -> Credentials,
+    ): RegistrationResult {
+        val credentials = try {
+            execute.invoke()
+        } catch (exception: Throwable) {
+            if (exception is Failure.RegistrationFlowError) {
+                pendingSessionData =
+                        pendingSessionData.copy(currentSession = exception.registrationFlowResponse.session)
+                                .also { pendingSessionStore.savePendingSessionData(it) }
+                return RegistrationResult.FlowResponse(exception.registrationFlowResponse.toFlowResult())
+            } else {
+                throw exception
+            }
+        }
+
+        val session = sessionCreator.createSession(credentials, pendingSessionData.homeServerConnectionConfig, loginType)
+        return RegistrationResult.Success(session)
     }
 }
