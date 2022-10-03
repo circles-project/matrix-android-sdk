@@ -19,6 +19,7 @@ package org.matrix.android.sdk.internal.auth
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.internal.auth.data.*
+import org.matrix.android.sdk.internal.auth.login.LoginFlowParams
 import org.matrix.android.sdk.internal.auth.login.ResetPasswordMailConfirmed
 import org.matrix.android.sdk.internal.auth.registration.AddThreePidRegistrationParams
 import org.matrix.android.sdk.internal.auth.registration.AddThreePidRegistrationResponse
@@ -140,4 +141,7 @@ internal interface AuthAPI {
      */
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/password")
     suspend fun resetPasswordMailConfirmed(@Body params: ResetPasswordMailConfirmed)
+
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "login")
+    suspend fun login(@Body loginFlowParams: LoginFlowParams): Credentials
 }
