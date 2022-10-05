@@ -17,7 +17,6 @@
 package org.matrix.android.sdk.internal.auth.login
 
 import android.util.Patterns
-import kotlinx.coroutines.delay
 import org.matrix.android.sdk.api.auth.LoginType
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.auth.login.LoginProfileInfo
@@ -38,11 +37,7 @@ import org.matrix.android.sdk.internal.auth.data.TokenLoginParams
 import org.matrix.android.sdk.internal.auth.db.PendingSessionData
 import org.matrix.android.sdk.internal.auth.findStageForType
 import org.matrix.android.sdk.internal.auth.registration.AddThreePidRegistrationParams
-import org.matrix.android.sdk.internal.auth.registration.DefaultRegisterTask
 import org.matrix.android.sdk.internal.auth.registration.RegisterAddThreePidTask
-import org.matrix.android.sdk.internal.auth.registration.RegisterTask
-import org.matrix.android.sdk.internal.auth.registration.RegistrationCustomParams
-import org.matrix.android.sdk.internal.auth.registration.RegistrationParams
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.session.content.DefaultContentUrlResolver
 import org.matrix.android.sdk.internal.session.contentscanner.DisabledContentScannerService
@@ -178,7 +173,8 @@ internal class DefaultLoginWizard(
 
     //Added to support few login flows
     override suspend fun loginStageCustom(
-            authParams: JsonDict
+            authParams: JsonDict,
+            identifierParams: JsonDict?
     ): RegistrationResult {
         val safeSession = pendingSessionData.currentSession
                 ?: throw IllegalStateException("developer error, call createAccount() method first")
@@ -186,7 +182,7 @@ internal class DefaultLoginWizard(
         val mutableParams = authParams.toMutableMap()
         mutableParams["session"] = safeSession
 
-        val params = LoginFlowParams(auth = mutableParams)
+        val params = LoginFlowParams(auth = mutableParams, identifier = identifierParams)
         return performRegistrationRequest(LoginType.CUSTOM, params)
     }
 

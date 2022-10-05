@@ -27,5 +27,8 @@ import org.matrix.android.sdk.api.util.JsonDict
 internal data class LoginFlowParams(
         // authentication parameters
         @Json(name = "auth")
-        val auth: JsonDict? = null
+        val auth: JsonDict? = null,
+
+        @Json(name = "identifier")
+        val identifier: JsonDict? = null
 )
