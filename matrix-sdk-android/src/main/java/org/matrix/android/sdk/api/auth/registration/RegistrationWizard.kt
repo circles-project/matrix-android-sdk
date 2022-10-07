@@ -129,9 +129,4 @@ interface RegistrationWizard {
     //Added to support few registration flows
     suspend fun getAllRegistrationFlows(): List<List<Stage>>
 
-    //Added to support custom Swiclops registration
-    suspend fun registrationSwiclops(
-            authParams: JsonDict,
-            userName: String?,
-            initialDeviceDisplayName: String?): RegistrationResult
 }

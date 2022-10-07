@@ -295,22 +295,4 @@ internal class DefaultRegistrationWizard(
         }
         return emptyList()
     }
-
-    override suspend fun registrationSwiclops(
-            authParams: JsonDict,
-            userName: String?,
-            initialDeviceDisplayName: String?): RegistrationResult {
-        val safeSession = pendingSessionData.currentSession
-                ?: throw IllegalStateException("developer error, call createAccount() method first")
-
-        val mutableParams = authParams.toMutableMap()
-        mutableParams["session"] = safeSession
-
-        val params = RegistrationCustomParams(
-                auth = mutableParams,
-                username = userName,
-                initialDeviceDisplayName = initialDeviceDisplayName
-        )
-        return performRegistrationOtherRequest(LoginType.CUSTOM, params)
-    }
 }
