@@ -81,7 +81,7 @@ interface LoginWizard {
     suspend fun resetPasswordMailConfirmed(newPassword: String, logoutAllDevices: Boolean = true)
 
     //Added to support few login flows
-    suspend fun getAllLoginFlows(): List<List<Stage>>
+    suspend fun getAllLoginFlows(identifier: JsonDict): List<List<Stage>>
 
     /**
      * Perform custom login stage by sending a custom JsonDict.

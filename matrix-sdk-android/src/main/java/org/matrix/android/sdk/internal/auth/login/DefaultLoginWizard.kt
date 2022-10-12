@@ -148,9 +148,9 @@ internal class DefaultLoginWizard(
     }
 
     //Added to support few login flows
-    override suspend fun getAllLoginFlows(): List<List<Stage>> {
+    override suspend fun getAllLoginFlows(identifier: JsonDict): List<List<Stage>> {
         try {
-            loginFlowTask.execute(LoginFlowTask.Params(LoginFlowParams()))
+            loginFlowTask.execute(LoginFlowTask.Params(LoginFlowParams(identifier = identifier)))
         } catch (exception: Throwable) {
             return if (exception is Failure.RegistrationFlowError) {
                 pendingSessionData =
