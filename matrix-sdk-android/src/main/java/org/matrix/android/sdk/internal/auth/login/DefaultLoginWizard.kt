@@ -174,7 +174,8 @@ internal class DefaultLoginWizard(
     //Added to support few login flows
     override suspend fun loginStageCustom(
             authParams: JsonDict,
-            identifierParams: JsonDict?
+            identifierParams: JsonDict?,
+            initialDeviceName: String?
     ): RegistrationResult {
         val safeSession = pendingSessionData.currentSession
                 ?: throw IllegalStateException("developer error, call createAccount() method first")
@@ -182,7 +183,7 @@ internal class DefaultLoginWizard(
         val mutableParams = authParams.toMutableMap()
         mutableParams["session"] = safeSession
 
-        val params = LoginFlowParams(auth = mutableParams, identifier = identifierParams)
+        val params = LoginFlowParams(auth = mutableParams, identifier = identifierParams, initialDeviceDisplayName = initialDeviceName)
         return performRegistrationRequest(LoginType.CUSTOM, params)
     }
 

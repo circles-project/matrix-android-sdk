@@ -30,5 +30,9 @@ internal data class LoginFlowParams(
         val auth: JsonDict? = null,
 
         @Json(name = "identifier")
-        val identifier: JsonDict? = null
+        val identifier: JsonDict? = null,
+
+        // device name
+        @Json(name = "initial_device_display_name")
+        val initialDeviceDisplayName: String? = null
 )
