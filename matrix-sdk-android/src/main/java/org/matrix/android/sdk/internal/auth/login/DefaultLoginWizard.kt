@@ -148,9 +148,9 @@ internal class DefaultLoginWizard(
     }
 
     //Added to support few login flows
-    override suspend fun getAllLoginFlows(identifier: JsonDict): List<List<Stage>> {
+    override suspend fun getAllLoginFlows(identifier: JsonDict, initialDeviceName: String?): List<List<Stage>> {
         try {
-            loginFlowTask.execute(LoginFlowTask.Params(LoginFlowParams(identifier = identifier)))
+            loginFlowTask.execute(LoginFlowTask.Params(LoginFlowParams(identifier = identifier, initialDeviceDisplayName = initialDeviceName)))
         } catch (exception: Throwable) {
             return if (exception is Failure.RegistrationFlowError) {
                 pendingSessionData =
@@ -184,10 +184,10 @@ internal class DefaultLoginWizard(
         mutableParams["session"] = safeSession
 
         val params = LoginFlowParams(auth = mutableParams, identifier = identifierParams, initialDeviceDisplayName = initialDeviceName)
-        return performRegistrationRequest(LoginType.CUSTOM, params)
+        return performLoginRequest(LoginType.CUSTOM, params)
     }
 
-    private suspend fun performRegistrationRequest(
+    private suspend fun performLoginRequest(
             loginType: LoginType,
             loginParams: LoginFlowParams
     ): RegistrationResult {
