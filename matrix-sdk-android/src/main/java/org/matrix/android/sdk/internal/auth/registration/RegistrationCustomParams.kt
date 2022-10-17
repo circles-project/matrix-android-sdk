@@ -27,5 +27,9 @@ import org.matrix.android.sdk.api.util.JsonDict
 internal data class RegistrationCustomParams(
         // authentication parameters
         @Json(name = "auth")
-        val auth: JsonDict? = null
+        val auth: JsonDict? = null,
+
+        // device name
+        @Json(name = "initial_device_display_name")
+        val initialDeviceDisplayName: String? = null
 )

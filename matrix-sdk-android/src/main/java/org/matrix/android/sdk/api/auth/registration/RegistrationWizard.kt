@@ -83,7 +83,7 @@ interface RegistrationWizard {
      * Current registration "session" param will be included into authParams by default.
      * The authParams should contain at least one entry "type" with a String value.
      */
-    suspend fun registrationCustom(authParams: JsonDict): RegistrationResult
+    suspend fun registrationCustom(authParams: JsonDict, initialDeviceDisplayName: String? = null): RegistrationResult
 
     /**
      * Perform the "m.login.email.identity" or "m.login.msisdn" stage.
@@ -128,5 +128,4 @@ interface RegistrationWizard {
 
     //Added to support few registration flows
     suspend fun getAllRegistrationFlows(): List<List<Stage>>
-
 }

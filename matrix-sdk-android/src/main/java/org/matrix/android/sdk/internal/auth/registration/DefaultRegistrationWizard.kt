@@ -219,7 +219,8 @@ internal class DefaultRegistrationWizard(
     }
 
     override suspend fun registrationCustom(
-            authParams: JsonDict
+            authParams: JsonDict,
+            initialDeviceDisplayName: String?
     ): RegistrationResult {
         val safeSession = pendingSessionData.currentSession
                 ?: throw IllegalStateException("developer error, call createAccount() method first")
@@ -227,7 +228,7 @@ internal class DefaultRegistrationWizard(
         val mutableParams = authParams.toMutableMap()
         mutableParams["session"] = safeSession
 
-        val params = RegistrationCustomParams(auth = mutableParams)
+        val params = RegistrationCustomParams(auth = mutableParams, initialDeviceDisplayName = initialDeviceDisplayName)
         return performRegistrationOtherRequest(LoginType.CUSTOM, params)
     }
 
