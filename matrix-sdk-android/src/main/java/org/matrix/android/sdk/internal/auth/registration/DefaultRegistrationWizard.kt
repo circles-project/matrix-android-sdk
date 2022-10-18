@@ -33,7 +33,7 @@ import org.matrix.android.sdk.internal.auth.AuthAPI
 import org.matrix.android.sdk.internal.auth.PendingSessionStore
 import org.matrix.android.sdk.internal.auth.SessionCreator
 import org.matrix.android.sdk.internal.auth.db.PendingSessionData
-import org.matrix.android.sdk.internal.auth.findStageForType
+import org.matrix.android.sdk.internal.auth.toFlowsWithStages
 
 /**
  * This class execute the registration request and is responsible to keep the session of interactive authentication.
@@ -282,14 +282,8 @@ internal class DefaultRegistrationWizard(
                 pendingSessionData =
                         pendingSessionData.copy(currentSession = exception.registrationFlowResponse.session)
                                 .also { pendingSessionStore.savePendingSessionData(it) }
-                val flowResponse = exception.registrationFlowResponse
-                val missingStages = flowResponse.toFlowResult().missingStages
 
-                val flowsWithStages = flowResponse.flows?.mapNotNull { it.stages }?.map { flow ->
-                    flow.mapNotNull { type -> missingStages.findStageForType(type) }
-                } ?: emptyList()
-
-                flowsWithStages
+                exception.registrationFlowResponse.toFlowsWithStages()
             } else {
                 emptyList()
             }

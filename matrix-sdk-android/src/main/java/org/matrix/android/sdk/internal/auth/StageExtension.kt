@@ -1,7 +1,9 @@
 package org.matrix.android.sdk.internal.auth
 
 import org.matrix.android.sdk.api.auth.data.LoginFlowTypes
+import org.matrix.android.sdk.api.auth.registration.RegistrationFlowResponse
 import org.matrix.android.sdk.api.auth.registration.Stage
+import org.matrix.android.sdk.api.auth.registration.toFlowResult
 
 //Added to support few registration flows
 fun List<Stage>.findStageForType(type: String): Stage? = when (type) {
@@ -11,4 +13,11 @@ fun List<Stage>.findStageForType(type: String): Stage? = when (type) {
     LoginFlowTypes.EMAIL_IDENTITY -> firstOrNull { it is Stage.Email }
     LoginFlowTypes.MSISDN         -> firstOrNull { it is Stage.Msisdn }
     else                          -> firstOrNull { (it as? Stage.Other)?.type == type }
+}
+
+fun RegistrationFlowResponse.toFlowsWithStages(): List<List<Stage>> {
+    val missingStages = toFlowResult().missingStages
+    return flows?.mapNotNull { it.stages }?.map { flow ->
+        flow.mapNotNull { type -> missingStages.findStageForType(type) }
+    } ?: emptyList()
 }
