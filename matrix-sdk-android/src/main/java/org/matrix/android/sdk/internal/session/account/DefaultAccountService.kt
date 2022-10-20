@@ -22,7 +22,8 @@ import javax.inject.Inject
 
 internal class DefaultAccountService @Inject constructor(
         private val changePasswordTask: ChangePasswordTask,
-        private val deactivateAccountTask: DeactivateAccountTask
+        private val deactivateAccountTask: DeactivateAccountTask,
+        private val changePasswordUIATask: ChangePasswordUIATask
 ) : AccountService {
 
     override suspend fun changePassword(password: String, newPassword: String, logoutAllDevices: Boolean) {
@@ -31,5 +32,10 @@ internal class DefaultAccountService @Inject constructor(
 
     override suspend fun deactivateAccount(eraseAllData: Boolean, userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor) {
         deactivateAccountTask.execute(DeactivateAccountTask.Params(eraseAllData, userInteractiveAuthInterceptor))
+    }
+
+    //Added for password UIA stages
+    override suspend fun changePasswordStages(userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor, logoutAllDevices: Boolean) {
+        changePasswordUIATask.execute(ChangePasswordUIATask.Params(logoutAllDevices, userInteractiveAuthInterceptor))
     }
 }

@@ -52,4 +52,7 @@ interface AccountService {
             eraseAllData: Boolean,
             userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor
     )
+
+    //Added for password UIA stages
+    suspend fun changePasswordStages(userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor, logoutAllDevices: Boolean = true)
 }
