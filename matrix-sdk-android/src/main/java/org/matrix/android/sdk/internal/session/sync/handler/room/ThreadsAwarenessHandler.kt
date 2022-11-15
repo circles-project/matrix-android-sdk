@@ -26,13 +26,17 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.RelationType
 import org.matrix.android.sdk.api.session.events.model.getRelationContentForType
 import org.matrix.android.sdk.api.session.events.model.getRootThreadEventId
+import org.matrix.android.sdk.api.session.events.model.isImageMessage
 import org.matrix.android.sdk.api.session.events.model.isSticker
+import org.matrix.android.sdk.api.session.events.model.isVideoMessage
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
+import org.matrix.android.sdk.api.session.room.model.message.MessageImageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageRelationContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
+import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
@@ -328,14 +332,35 @@ internal class ThreadsAwarenessHandler @Inject constructor(
                 eventToInjectBody,
                 eventBody
         )
-
-        return MessageTextContent(
-                relatesTo = threadRelation,
-                msgType = MessageType.MSGTYPE_TEXT,
-                format = MessageFormat.FORMAT_MATRIX_HTML,
-                body = eventBody,
-                formattedBody = replyFormatted
-        ).toContent()
+        return when {
+            eventToInject.isImageMessage() -> {
+                val imageContent = eventToInject.getClearContent().toModel<MessageImageContent>()
+                MessageImageContent(
+                        relatesTo = threadRelation,
+                        msgType = MessageType.MSGTYPE_IMAGE,
+                        body = eventBody,
+                        url = imageContent?.url,
+                        encryptedFileInfo = imageContent?.encryptedFileInfo
+                ).toContent()
+            }
+            eventToInject.isVideoMessage() -> {
+                val videoContent = eventToInject.getClearContent().toModel<MessageVideoContent>()
+                MessageVideoContent(
+                        relatesTo = threadRelation,
+                        msgType = MessageType.MSGTYPE_VIDEO,
+                        body = eventBody,
+                        url = videoContent?.url,
+                        encryptedFileInfo = videoContent?.encryptedFileInfo
+                ).toContent()
+            }
+            else                           -> MessageTextContent(
+                    relatesTo = threadRelation,
+                    msgType = MessageType.MSGTYPE_TEXT,
+                    format = MessageFormat.FORMAT_MATRIX_HTML,
+                    body = eventBody,
+                    formattedBody = replyFormatted
+            ).toContent()
+        }
     }
 
     /**
