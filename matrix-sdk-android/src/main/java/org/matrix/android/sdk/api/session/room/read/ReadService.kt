@@ -51,6 +51,9 @@ interface ReadService {
      */
     fun isEventRead(eventId: String): Boolean
 
+    //Added for viewers count
+    fun isEventRead(eventId: String, userId: String): Boolean
+
     /**
      * Returns a live read marker id for the room.
      */
