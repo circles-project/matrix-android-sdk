@@ -86,8 +86,10 @@ internal class DefaultReadService @AssistedInject constructor(
         return isEventRead(monarchy.realmConfiguration, userId, roomId, eventId, shouldCheckIfReadInEventsThread)
     }
 
+    //Added for viewers count
     override fun isEventRead(eventId: String, userId: String): Boolean {
-        return isEventRead(monarchy.realmConfiguration, userId, roomId, eventId)
+        val shouldCheckIfReadInEventsThread = homeServerCapabilitiesDataSource.getHomeServerCapabilities()?.canUseThreadReadReceiptsAndNotifications == true
+        return isEventRead(monarchy.realmConfiguration, userId, roomId, eventId, shouldCheckIfReadInEventsThread)
     }
 
     override fun getReadMarkerLive(): LiveData<Optional<String>> {
