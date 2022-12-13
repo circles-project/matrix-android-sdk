@@ -72,4 +72,14 @@ internal class SessionManager @Inject constructor(
                     .create(matrixComponent, sessionParams)
         }
     }
+
+    //Added for switch user
+    fun getAllSessionParams(): List<SessionParams> {
+        return sessionParamsStore.getAll()
+    }
+
+    //Added for switch user
+    fun removeSession(sessionId: String) {
+        if (sessionComponents.containsKey(sessionId)) sessionComponents.remove(sessionId)
+    }
 }
