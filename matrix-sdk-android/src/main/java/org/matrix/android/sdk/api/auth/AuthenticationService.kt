@@ -19,6 +19,7 @@ package org.matrix.android.sdk.api.auth
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
 import org.matrix.android.sdk.api.auth.data.LoginFlowResult
+import org.matrix.android.sdk.api.auth.data.SessionParams
 import org.matrix.android.sdk.api.auth.login.LoginWizard
 import org.matrix.android.sdk.api.auth.registration.RegistrationWizard
 import org.matrix.android.sdk.api.auth.wellknown.WellknownResult
@@ -150,4 +151,19 @@ interface AuthenticationService {
             initialDeviceName: String? = null,
             deviceId: String? = null
     ): Session
+
+    /**
+     * Added for switch user
+     */
+    fun getAllAuthSessionsParams(): List<SessionParams>
+
+    /**
+     * Added for switch user
+     */
+    fun createSessionFromParams(params: SessionParams): Session
+
+    /**
+     * Added for switch user
+     */
+    fun removeSession(sessionId: String)
 }

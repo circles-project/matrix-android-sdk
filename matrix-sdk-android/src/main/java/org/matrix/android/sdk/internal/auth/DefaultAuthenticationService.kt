@@ -27,6 +27,7 @@ import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
 import org.matrix.android.sdk.api.auth.data.LoginFlowResult
 import org.matrix.android.sdk.api.auth.data.LoginFlowTypes
+import org.matrix.android.sdk.api.auth.data.SessionParams
 import org.matrix.android.sdk.api.auth.login.LoginWizard
 import org.matrix.android.sdk.api.auth.registration.RegistrationWizard
 import org.matrix.android.sdk.api.auth.wellknown.WellknownResult
@@ -484,5 +485,16 @@ internal class DefaultAuthenticationService @Inject constructor(
             is WellknownResult.Prompt -> wellKnownResult.homeServerUrl
             else                      -> throw Failure.OtherServerError("", HttpsURLConnection.HTTP_NOT_FOUND /* 404 */)
         }
+    }
+
+    //Added for switch user
+    override fun getAllAuthSessionsParams(): List<SessionParams> = sessionManager.getAllSessionParams()
+
+    //Added for switch user
+    override fun createSessionFromParams(params: SessionParams): Session = sessionManager.getOrCreateSession(params)
+
+    //Added for switch user
+    override fun removeSession(sessionId: String) {
+        sessionManager.releaseSession(sessionId)
     }
 }
