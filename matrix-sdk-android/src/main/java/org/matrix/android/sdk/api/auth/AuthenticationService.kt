@@ -165,5 +165,5 @@ interface AuthenticationService {
     /**
      * Added for switch user
      */
-    fun removeSession(sessionId: String)
+    suspend fun removeSession(sessionId: String)
 }

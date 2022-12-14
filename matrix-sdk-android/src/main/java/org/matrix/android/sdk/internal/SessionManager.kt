@@ -79,7 +79,8 @@ internal class SessionManager @Inject constructor(
     }
 
     //Added for switch user
-    fun removeSession(sessionId: String) {
-        if (sessionComponents.containsKey(sessionId)) sessionComponents.remove(sessionId)
+    suspend fun removeSession(sessionId: String) {
+        sessionComponents.remove(sessionId)
+        sessionParamsStore.delete(sessionId)
     }
 }

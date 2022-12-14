@@ -494,7 +494,7 @@ internal class DefaultAuthenticationService @Inject constructor(
     override fun createSessionFromParams(params: SessionParams): Session = sessionManager.getOrCreateSession(params)
 
     //Added for switch user
-    override fun removeSession(sessionId: String) {
+    override suspend fun removeSession(sessionId: String) {
         sessionManager.removeSession(sessionId)
     }
 }
