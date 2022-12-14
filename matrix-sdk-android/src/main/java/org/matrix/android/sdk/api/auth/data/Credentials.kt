@@ -58,6 +58,6 @@ data class Credentials(
         @Json(name = "well_known") val discoveryInformation: DiscoveryInformation? = null
 )
 
-internal fun Credentials.sessionId(): String {
+fun Credentials.sessionId(): String {
     return (if (deviceId.isNullOrBlank()) userId else "$userId|$deviceId").md5()
 }
