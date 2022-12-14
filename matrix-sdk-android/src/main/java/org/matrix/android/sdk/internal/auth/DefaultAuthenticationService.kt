@@ -495,6 +495,6 @@ internal class DefaultAuthenticationService @Inject constructor(
 
     //Added for switch user
     override fun removeSession(sessionId: String) {
-        sessionManager.releaseSession(sessionId)
+        sessionManager.removeSession(sessionId)
     }
 }
