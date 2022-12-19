@@ -488,6 +488,11 @@ internal class DefaultAuthenticationService @Inject constructor(
     }
 
     //Added for switch user
+    override suspend fun switchToSessionWithId(id: String) {
+        sessionManager.setActiveSessionAsLast(id)
+    }
+
+    //Added for switch user
     override fun getAllAuthSessionsParams(): List<SessionParams> = sessionManager.getAllSessionParams()
 
     //Added for switch user

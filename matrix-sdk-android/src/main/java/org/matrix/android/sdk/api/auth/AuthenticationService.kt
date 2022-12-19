@@ -155,6 +155,11 @@ interface AuthenticationService {
     /**
      * Added for switch user
      */
+    suspend fun switchToSessionWithId(id: String)
+
+    /**
+     * Added for switch user
+     */
     fun getAllAuthSessionsParams(): List<SessionParams>
 
     /**
