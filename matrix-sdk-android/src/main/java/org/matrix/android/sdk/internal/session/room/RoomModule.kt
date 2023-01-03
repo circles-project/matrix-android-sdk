@@ -79,8 +79,10 @@ import org.matrix.android.sdk.internal.session.room.membership.admin.DefaultMemb
 import org.matrix.android.sdk.internal.session.room.membership.admin.MembershipAdminTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.DefaultInviteTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.DefaultJoinRoomTask
+import org.matrix.android.sdk.internal.session.room.membership.joining.DefaultKnockTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.InviteTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.JoinRoomTask
+import org.matrix.android.sdk.internal.session.room.membership.joining.KnockTask
 import org.matrix.android.sdk.internal.session.room.membership.leaving.DefaultLeaveRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.leaving.LeaveRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.threepid.DefaultInviteThreePidTask
@@ -354,4 +356,7 @@ internal abstract class RoomModule {
 
     @Binds
     abstract fun bindRedactLiveLocationShareTask(task: DefaultRedactLiveLocationShareTask): RedactLiveLocationShareTask
+
+    @Binds
+    abstract fun bindKnockTask(task: DefaultKnockTask): KnockTask
 }
