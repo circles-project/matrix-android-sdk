@@ -32,6 +32,7 @@ import org.matrix.android.sdk.internal.session.room.create.JoinRoomResponse
 import org.matrix.android.sdk.internal.session.room.membership.RoomMembersResponse
 import org.matrix.android.sdk.internal.session.room.membership.admin.UserIdAndReason
 import org.matrix.android.sdk.internal.session.room.membership.joining.InviteBody
+import org.matrix.android.sdk.internal.session.room.membership.joining.KnockBody
 import org.matrix.android.sdk.internal.session.room.membership.threepid.ThreePidInviteBody
 import org.matrix.android.sdk.internal.session.room.read.ReadBody
 import org.matrix.android.sdk.internal.session.room.relation.RelationsResponse
@@ -451,4 +452,10 @@ internal interface RoomAPI {
             @Path("roomIdOrAlias") roomidOrAlias: String,
             @Query("via") viaServers: List<String>?
     ): RoomStrippedState
+
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "knock/{roomIdOrAlias}")
+    suspend fun knock(
+            @Path("roomIdOrAlias") roomIdOrAlias: String,
+            @Body body: KnockBody
+    )
 }
