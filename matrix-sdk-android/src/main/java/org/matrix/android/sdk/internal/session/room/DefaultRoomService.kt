@@ -51,6 +51,7 @@ import org.matrix.android.sdk.internal.session.room.delete.DeleteLocalRoomTask
 import org.matrix.android.sdk.internal.session.room.membership.RoomChangeMembershipStateDataSource
 import org.matrix.android.sdk.internal.session.room.membership.RoomMemberHelper
 import org.matrix.android.sdk.internal.session.room.membership.joining.JoinRoomTask
+import org.matrix.android.sdk.internal.session.room.membership.joining.KnockTask
 import org.matrix.android.sdk.internal.session.room.membership.leaving.LeaveRoomTask
 import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomTask
 import org.matrix.android.sdk.internal.session.room.peeking.ResolveRoomStateTask
@@ -77,8 +78,9 @@ internal class DefaultRoomService @Inject constructor(
         private val roomSummaryDataSource: RoomSummaryDataSource,
         private val roomChangeMembershipStateDataSource: RoomChangeMembershipStateDataSource,
         private val leaveRoomTask: LeaveRoomTask,
-        private val roomSummaryUpdater: RoomSummaryUpdater
-) : RoomService {
+        private val roomSummaryUpdater: RoomSummaryUpdater,
+        private val knockTask: KnockTask
+        ) : RoomService {
 
     override suspend fun createRoom(createRoomParams: CreateRoomParams): String {
         return createRoomTask.executeRetry(createRoomParams, 3)
@@ -261,5 +263,9 @@ internal class DefaultRoomService @Inject constructor(
             return roomSummaryDataSource.getFlattenOrphanRoomsLive()
         }
         return roomSummaryDataSource.getAllRoomSummaryChildOfLive(spaceId, memberships)
+    }
+
+    override suspend fun knock(roomId: String, reason: String?) {
+        knockTask.execute(KnockTask.Params(roomId, reason))
     }
 }

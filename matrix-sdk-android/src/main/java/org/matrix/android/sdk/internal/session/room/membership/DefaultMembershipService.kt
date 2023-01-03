@@ -55,7 +55,6 @@ internal class DefaultMembershipService @AssistedInject constructor(
         private val inviteTask: InviteTask,
         private val inviteThreePidTask: InviteThreePidTask,
         private val membershipAdminTask: MembershipAdminTask,
-        private val knockTask: KnockTask,
         private val roomDataSource: RoomDataSource,
         private val cryptoService: CryptoService,
         @UserId
@@ -165,10 +164,5 @@ internal class DefaultMembershipService @AssistedInject constructor(
     override suspend fun invite3pid(threePid: ThreePid) {
         val params = InviteThreePidTask.Params(roomId, threePid)
         return inviteThreePidTask.execute(params)
-    }
-
-    override suspend fun knock(userId: String, reason: String?) {
-        val params = KnockTask.Params(roomId, reason)
-        knockTask.execute(params)
     }
 }

@@ -293,4 +293,7 @@ interface RoomService {
      * This is useful for refreshing summary content with encrypted messages after receiving new room keys.
      */
     fun refreshJoinedRoomSummaryPreviews(roomId: String?)
+
+    //Ask permission to join the room.
+    suspend fun knock(roomId: String, reason: String? = null)
 }

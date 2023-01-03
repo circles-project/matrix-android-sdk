@@ -95,7 +95,4 @@ interface MembershipService {
 
     @Deprecated("Use remove instead", ReplaceWith("remove(userId, reason)"))
     suspend fun kick(userId: String, reason: String? = null) = remove(userId, reason)
-
-    //Ask permission to join the room.
-    suspend fun knock(userId: String, reason: String? = null)
 }
