@@ -44,6 +44,7 @@ import org.matrix.android.sdk.internal.query.process
 import org.matrix.android.sdk.internal.session.room.RoomDataSource
 import org.matrix.android.sdk.internal.session.room.membership.admin.MembershipAdminTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.InviteTask
+import org.matrix.android.sdk.internal.session.room.membership.joining.KnockTask
 import org.matrix.android.sdk.internal.session.room.membership.threepid.InviteThreePidTask
 import org.matrix.android.sdk.internal.util.fetchCopied
 
@@ -54,6 +55,7 @@ internal class DefaultMembershipService @AssistedInject constructor(
         private val inviteTask: InviteTask,
         private val inviteThreePidTask: InviteThreePidTask,
         private val membershipAdminTask: MembershipAdminTask,
+        private val knockTask: KnockTask,
         private val roomDataSource: RoomDataSource,
         private val cryptoService: CryptoService,
         @UserId
@@ -163,5 +165,10 @@ internal class DefaultMembershipService @AssistedInject constructor(
     override suspend fun invite3pid(threePid: ThreePid) {
         val params = InviteThreePidTask.Params(roomId, threePid)
         return inviteThreePidTask.execute(params)
+    }
+
+    override suspend fun knock(userId: String, reason: String?) {
+        val params = KnockTask.Params(roomId, reason)
+        knockTask.execute(params)
     }
 }
