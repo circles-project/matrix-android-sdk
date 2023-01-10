@@ -101,6 +101,8 @@ import org.matrix.android.sdk.internal.session.room.relation.DefaultUpdateQuickR
 import org.matrix.android.sdk.internal.session.room.relation.FetchEditHistoryTask
 import org.matrix.android.sdk.internal.session.room.relation.FindReactionEventForUndoTask
 import org.matrix.android.sdk.internal.session.room.relation.UpdateQuickReactionTask
+import org.matrix.android.sdk.internal.session.room.relation.poll.DefaultFetchPollResponseEventsTask
+import org.matrix.android.sdk.internal.session.room.relation.poll.FetchPollResponseEventsTask
 import org.matrix.android.sdk.internal.session.room.relation.threads.DefaultFetchThreadSummariesTask
 import org.matrix.android.sdk.internal.session.room.relation.threads.DefaultFetchThreadTimelineTask
 import org.matrix.android.sdk.internal.session.room.relation.threads.FetchThreadSummariesTask
@@ -356,6 +358,9 @@ internal abstract class RoomModule {
 
     @Binds
     abstract fun bindRedactLiveLocationShareTask(task: DefaultRedactLiveLocationShareTask): RedactLiveLocationShareTask
+
+    @Binds
+    abstract fun bindFetchPollResponseEventsTask(task: DefaultFetchPollResponseEventsTask): FetchPollResponseEventsTask
 
     @Binds
     abstract fun bindKnockTask(task: DefaultKnockTask): KnockTask
