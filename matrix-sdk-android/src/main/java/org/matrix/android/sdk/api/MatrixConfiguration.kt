@@ -68,8 +68,9 @@ data class MatrixConfiguration(
         val roomDisplayNameFallbackProvider: RoomDisplayNameFallbackProvider,
         /**
          * Thread messages default enable/disabled value.
+         * Circles do not use thread messages
          */
-        val threadMessagesEnabledDefault: Boolean = true,
+        val threadMessagesEnabledDefault: Boolean = false,
         /**
          * List of network interceptors, they will be added when building an OkHttp client.
          */
