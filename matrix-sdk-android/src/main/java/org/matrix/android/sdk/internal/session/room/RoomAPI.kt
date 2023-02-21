@@ -38,6 +38,7 @@ import org.matrix.android.sdk.internal.session.room.relation.RelationsResponse
 import org.matrix.android.sdk.internal.session.room.relation.threads.ThreadSummariesResponse
 import org.matrix.android.sdk.internal.session.room.reporting.ReportContentBody
 import org.matrix.android.sdk.internal.session.room.send.SendResponse
+import org.matrix.android.sdk.internal.session.room.send.model.EventRedactBody
 import org.matrix.android.sdk.internal.session.room.tags.TagBody
 import org.matrix.android.sdk.internal.session.room.timeline.EventContextResponse
 import org.matrix.android.sdk.internal.session.room.timeline.PaginationResponse
@@ -62,7 +63,7 @@ internal interface RoomAPI {
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "publicRooms")
     suspend fun publicRooms(
             @Query("server") server: String?,
-            @Body publicRoomsParams: PublicRoomsParams
+            @Body publicRoomsParams: PublicRoomsParams,
     ): PublicRoomsResponse
 
     /**
@@ -92,7 +93,7 @@ internal interface RoomAPI {
             @Query("from") from: String,
             @Query("dir") dir: String,
             @Query("limit") limit: Int?,
-            @Query("filter") filter: String?
+            @Query("filter") filter: String?,
     ): PaginationResponse
 
     /**
@@ -108,7 +109,7 @@ internal interface RoomAPI {
             @Path("roomId") roomId: String,
             @Query("at") syncToken: String?,
             @Query("membership") membership: Membership?,
-            @Query("not_membership") notMembership: Membership?
+            @Query("not_membership") notMembership: Membership?,
     ): RoomMembersResponse
 
     /**
@@ -124,7 +125,7 @@ internal interface RoomAPI {
             @Path("txId") txId: String,
             @Path("roomId") roomId: String,
             @Path("eventType") eventType: String,
-            @Body content: Content?
+            @Body content: Content?,
     ): SendResponse
 
     /**
@@ -140,7 +141,7 @@ internal interface RoomAPI {
             @Path("roomId") roomId: String,
             @Path("eventId") eventId: String,
             @Query("limit") limit: Int,
-            @Query("filter") filter: String? = null
+            @Query("filter") filter: String? = null,
     ): EventContextResponse
 
     /**
@@ -152,7 +153,7 @@ internal interface RoomAPI {
     @GET(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/event/{eventId}")
     suspend fun getEvent(
             @Path("roomId") roomId: String,
-            @Path("eventId") eventId: String
+            @Path("eventId") eventId: String,
     ): Event
 
     /**
@@ -164,7 +165,7 @@ internal interface RoomAPI {
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/read_markers")
     suspend fun sendReadMarker(
             @Path("roomId") roomId: String,
-            @Body markers: Map<String, String>
+            @Body markers: Map<String, String>,
     )
 
     /**
@@ -175,7 +176,7 @@ internal interface RoomAPI {
             @Path("roomId") roomId: String,
             @Path("receiptType") receiptType: String,
             @Path("eventId") eventId: String,
-            @Body body: ReadBody
+            @Body body: ReadBody,
     )
 
     /**
@@ -188,7 +189,7 @@ internal interface RoomAPI {
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/invite")
     suspend fun invite(
             @Path("roomId") roomId: String,
-            @Body body: InviteBody
+            @Body body: InviteBody,
     )
 
     /**
@@ -200,7 +201,7 @@ internal interface RoomAPI {
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/invite")
     suspend fun invite3pid(
             @Path("roomId") roomId: String,
-            @Body body: ThreePidInviteBody
+            @Body body: ThreePidInviteBody,
     )
 
     /**
@@ -214,7 +215,7 @@ internal interface RoomAPI {
     suspend fun sendStateEvent(
             @Path("roomId") roomId: String,
             @Path("state_event_type") stateEventType: String,
-            @Body params: JsonDict
+            @Body params: JsonDict,
     ): SendResponse
 
     /**
@@ -230,7 +231,7 @@ internal interface RoomAPI {
             @Path("roomId") roomId: String,
             @Path("state_event_type") stateEventType: String,
             @Path("state_key") stateKey: String,
-            @Body params: JsonDict
+            @Body params: JsonDict,
     ): SendResponse
 
     /**
@@ -258,7 +259,7 @@ internal interface RoomAPI {
             @Path("eventType") eventType: String,
             @Query("from") from: String? = null,
             @Query("to") to: String? = null,
-            @Query("limit") limit: Int? = null
+            @Query("limit") limit: Int? = null,
     ): RelationsResponse
 
     /**
@@ -278,7 +279,7 @@ internal interface RoomAPI {
             @Path("relationType") relationType: String,
             @Query("from") from: String? = null,
             @Query("to") to: String? = null,
-            @Query("limit") limit: Int? = null
+            @Query("limit") limit: Int? = null,
     ): RelationsResponse
 
     /**
@@ -292,7 +293,7 @@ internal interface RoomAPI {
     suspend fun join(
             @Path("roomIdOrAlias") roomIdOrAlias: String,
             @Query("server_name") viaServers: List<String>,
-            @Body params: JsonDict
+            @Body params: JsonDict,
     ): JoinRoomResponse
 
     /**
@@ -304,7 +305,7 @@ internal interface RoomAPI {
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/leave")
     suspend fun leave(
             @Path("roomId") roomId: String,
-            @Body params: Map<String, String?>
+            @Body params: Map<String, String?>,
     )
 
     /**
@@ -316,7 +317,7 @@ internal interface RoomAPI {
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/ban")
     suspend fun ban(
             @Path("roomId") roomId: String,
-            @Body userIdAndReason: UserIdAndReason
+            @Body userIdAndReason: UserIdAndReason,
     )
 
     /**
@@ -328,7 +329,7 @@ internal interface RoomAPI {
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/unban")
     suspend fun unban(
             @Path("roomId") roomId: String,
-            @Body userIdAndReason: UserIdAndReason
+            @Body userIdAndReason: UserIdAndReason,
     )
 
     /**
@@ -340,7 +341,7 @@ internal interface RoomAPI {
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/kick")
     suspend fun kick(
             @Path("roomId") roomId: String,
-            @Body userIdAndReason: UserIdAndReason
+            @Body userIdAndReason: UserIdAndReason,
     )
 
     /**
@@ -351,14 +352,14 @@ internal interface RoomAPI {
      * @param txId the transaction Id
      * @param roomId the room id
      * @param eventId the event to delete
-     * @param reason json containing reason key {"reason": "Indecent material"}
+     * @param body body containing reason key {"reason": "Indecent material"} and with_relations
      */
     @PUT(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/redact/{eventId}/{txnId}")
     suspend fun redactEvent(
             @Path("txnId") txId: String,
             @Path("roomId") roomId: String,
             @Path("eventId") eventId: String,
-            @Body reason: Map<String, String>
+            @Body body: EventRedactBody,
     ): SendResponse
 
     /**
@@ -372,7 +373,7 @@ internal interface RoomAPI {
     suspend fun reportContent(
             @Path("roomId") roomId: String,
             @Path("eventId") eventId: String,
-            @Body body: ReportContentBody
+            @Body body: ReportContentBody,
     )
 
     /**
@@ -389,7 +390,7 @@ internal interface RoomAPI {
     suspend fun sendTypingState(
             @Path("roomId") roomId: String,
             @Path("userId") userId: String,
-            @Body body: TypingBody
+            @Body body: TypingBody,
     )
 
     /*
@@ -404,7 +405,7 @@ internal interface RoomAPI {
             @Path("userId") userId: String,
             @Path("roomId") roomId: String,
             @Path("tag") tag: String,
-            @Body body: TagBody
+            @Body body: TagBody,
     )
 
     /**
@@ -414,7 +415,7 @@ internal interface RoomAPI {
     suspend fun deleteTag(
             @Path("userId") userId: String,
             @Path("roomId") roomId: String,
-            @Path("tag") tag: String
+            @Path("tag") tag: String,
     )
 
     /**
@@ -425,7 +426,7 @@ internal interface RoomAPI {
             @Path("userId") userId: String,
             @Path("roomId") roomId: String,
             @Path("type") type: String,
-            @Body content: JsonDict
+            @Body content: JsonDict,
     )
 
     /**
@@ -438,7 +439,7 @@ internal interface RoomAPI {
     suspend fun deleteRoomAccountData(
             @Path("userId") userId: String,
             @Path("roomId") roomId: String,
-            @Path("type") type: String
+            @Path("type") type: String,
     )
 
     /**
@@ -451,7 +452,7 @@ internal interface RoomAPI {
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "rooms/{roomId}/upgrade")
     suspend fun upgradeRoom(
             @Path("roomId") roomId: String,
-            @Body body: RoomUpgradeBody
+            @Body body: RoomUpgradeBody,
     ): RoomUpgradeResponse
 
     /**
@@ -463,7 +464,7 @@ internal interface RoomAPI {
     @GET(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "im.nheko.summary/rooms/{roomIdOrAlias}/summary")
     suspend fun getRoomSummary(
             @Path("roomIdOrAlias") roomidOrAlias: String,
-            @Query("via") viaServers: List<String>?
+            @Query("via") viaServers: List<String>?,
     ): RoomStrippedState
 
     @GET(NetworkConstants.URI_API_PREFIX_PATH_V1 + "rooms/{roomId}/threads")
@@ -471,7 +472,7 @@ internal interface RoomAPI {
             @Path("roomId") roomId: String,
             @Query("include") include: String? = "all",
             @Query("from") from: String? = null,
-            @Query("limit") limit: Int? = null
+            @Query("limit") limit: Int? = null,
     ): ThreadSummariesResponse
 
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "knock/{roomIdOrAlias}")
