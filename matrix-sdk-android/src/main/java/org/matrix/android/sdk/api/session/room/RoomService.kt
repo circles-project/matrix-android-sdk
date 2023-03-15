@@ -29,6 +29,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.create.CreateRoomParams
 import org.matrix.android.sdk.api.session.room.peeking.PeekResult
 import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotificationCount
+import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.Optional
 
 /**
@@ -296,4 +297,7 @@ interface RoomService {
 
     //Ask permission to join the room.
     suspend fun knock(roomId: String, reason: String? = null)
+
+    //Send custom room state event
+    suspend fun sendRoomState(roomId: String, stateKey: String, eventType: String, body: JsonDict)
 }
