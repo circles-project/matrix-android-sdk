@@ -70,7 +70,7 @@ data class MatrixConfiguration(
          * Thread messages default enable/disabled value.
          * Circles do not use thread messages
          */
-        val threadMessagesEnabledDefault: Boolean = false,
+        val threadMessagesEnabledDefault: Boolean = true,
         /**
          * List of network interceptors, they will be added when building an OkHttp client.
          */
