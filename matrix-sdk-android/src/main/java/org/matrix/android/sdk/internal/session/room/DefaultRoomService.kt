@@ -38,6 +38,7 @@ import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.session.room.peeking.PeekResult
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.summary.RoomAggregateNotificationCount
+import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.internal.database.mapper.asDomain
@@ -56,6 +57,7 @@ import org.matrix.android.sdk.internal.session.room.membership.leaving.LeaveRoom
 import org.matrix.android.sdk.internal.session.room.peeking.PeekRoomTask
 import org.matrix.android.sdk.internal.session.room.peeking.ResolveRoomStateTask
 import org.matrix.android.sdk.internal.session.room.read.MarkAllRoomsReadTask
+import org.matrix.android.sdk.internal.session.room.state.SendStateTask
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryDataSource
 import org.matrix.android.sdk.internal.session.room.summary.RoomSummaryUpdater
 import org.matrix.android.sdk.internal.session.user.accountdata.UpdateBreadcrumbsTask
@@ -79,8 +81,9 @@ internal class DefaultRoomService @Inject constructor(
         private val roomChangeMembershipStateDataSource: RoomChangeMembershipStateDataSource,
         private val leaveRoomTask: LeaveRoomTask,
         private val roomSummaryUpdater: RoomSummaryUpdater,
-        private val knockTask: KnockTask
-        ) : RoomService {
+        private val knockTask: KnockTask,
+        private val sendStateTask: SendStateTask
+) : RoomService {
 
     override suspend fun createRoom(createRoomParams: CreateRoomParams): String {
         return createRoomTask.executeRetry(createRoomParams, 3)
@@ -267,5 +270,16 @@ internal class DefaultRoomService @Inject constructor(
 
     override suspend fun knock(roomId: String, reason: String?) {
         knockTask.execute(KnockTask.Params(roomId, reason))
+    }
+
+    override suspend fun sendRoomState(roomId: String, stateKey: String, eventType: String, body: JsonDict) {
+        val params = SendStateTask.Params(
+                roomId = roomId,
+                stateKey = stateKey,
+                eventType = eventType,
+                body = body
+        )
+
+        sendStateTask.execute(params)
     }
 }
