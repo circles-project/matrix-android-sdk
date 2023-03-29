@@ -42,6 +42,7 @@ import org.matrix.android.sdk.api.session.securestorage.SsssPassphrase
 import org.matrix.android.sdk.api.util.fromBase64
 import org.matrix.android.sdk.api.util.toBase64NoPadding
 import org.matrix.android.sdk.internal.crypto.SecretShareManager
+import org.matrix.android.sdk.internal.crypto.keysbackup.BCryptManager
 import org.matrix.android.sdk.internal.crypto.keysbackup.generatePrivateKeyWithPassword
 import org.matrix.android.sdk.internal.crypto.tools.HkdfSha256
 import org.matrix.android.sdk.internal.crypto.tools.withOlmDecryption
@@ -179,7 +180,7 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
                             throw SharedSecretStorageError.UnknownAlgorithm(key.keyInfo.content.algorithm ?: "")
                         }
                     }
-                    is KeyInfoResult.Error -> throw key.error
+                    is KeyInfoResult.Error   -> throw key.error
                 }
             }
 
@@ -387,5 +388,42 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
 
     override suspend fun requestSecret(name: String, myOtherDeviceId: String) {
         secretShareManager.requestSecretTo(myOtherDeviceId, name)
+    }
+
+    override suspend fun generateKeyWithPassphrase(
+            keyId: String,
+            keyName: String,
+            passphrase: String,
+            keySigner: KeySigner,
+            progressListener: ProgressListener?,
+            userName: String?,
+            isBsSpeke: Boolean
+    ): SsssKeyCreationInfo {
+        return withContext(cryptoCoroutineScope.coroutineContext + coroutineDispatchers.computation) {
+            val privatePart = if (isBsSpeke) BCryptManager.generateBcryptPrivateKeyWithPassword(userName ?: "", passphrase)
+            else generatePrivateKeyWithPassword(passphrase, progressListener)
+
+            val storageKeyContent = SecretStorageKeyContent(
+                    algorithm = SSSS_ALGORITHM_AES_HMAC_SHA2,
+                    passphrase = SsssPassphrase(algorithm = "m.pbkdf2", iterations = privatePart.iterations, salt = privatePart.salt)
+            )
+
+            val signedContent = keySigner.sign(storageKeyContent.canonicalSignable())?.let {
+                storageKeyContent.copy(
+                        signatures = it
+                )
+            } ?: storageKeyContent
+
+            accountDataService.updateUserAccountData(
+                    "$KEY_ID_BASE.$keyId",
+                    signedContent.toContent()
+            )
+            SsssKeyCreationInfo(
+                    keyId = keyId,
+                    content = storageKeyContent,
+                    recoveryKey = computeRecoveryKey(privatePart.privateKey),
+                    keySpec = RawBytesKeySpec(privatePart.privateKey)
+            )
+        }
     }
 }

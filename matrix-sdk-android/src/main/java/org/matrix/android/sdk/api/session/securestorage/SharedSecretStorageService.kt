@@ -136,4 +136,14 @@ interface SharedSecretStorageService {
     fun checkShouldBeAbleToAccessSecrets(secretNames: List<String>, keyId: String?): IntegrityResult
 
     suspend fun requestSecret(name: String, myOtherDeviceId: String)
+
+    suspend fun generateKeyWithPassphrase(
+            keyId: String,
+            keyName: String,
+            passphrase: String,
+            keySigner: KeySigner,
+            progressListener: ProgressListener?,
+            userName: String? = null,
+            isBsSpeke: Boolean = false
+    ): SsssKeyCreationInfo
 }
