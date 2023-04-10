@@ -19,12 +19,10 @@ package org.matrix.android.sdk.internal.session.room.timeline.decorator
 import io.realm.Realm
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
-import org.matrix.android.sdk.api.session.events.model.isThread
 import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.session.room.timeline.getLastMessageContent
 import org.matrix.android.sdk.api.session.room.timeline.getRelationContent
-import org.matrix.android.sdk.api.session.room.timeline.isReply
 import org.matrix.android.sdk.internal.database.mapper.TimelineEventMapper
 import org.matrix.android.sdk.internal.database.mapper.asDomain
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
@@ -39,14 +37,8 @@ internal class UpdatedReplyDecorator(
         private val timelineEventMapper: TimelineEventMapper,
 ) : TimelineEventDecorator {
 
-    override fun decorate(timelineEvent: TimelineEvent): TimelineEvent {
-        return if (timelineEvent.isReply() && !timelineEvent.root.isThread()) {
-            val newRepliedEvent = createNewRepliedEvent(timelineEvent) ?: return timelineEvent
-            timelineEvent.copy(root = newRepliedEvent)
-        } else {
-            timelineEvent
-        }
-    }
+    //Changed to support media replies
+    override fun decorate(timelineEvent: TimelineEvent): TimelineEvent = timelineEvent
 
     private fun createNewRepliedEvent(currentTimelineEvent: TimelineEvent): Event? {
         val relatesEventId = currentTimelineEvent.getRelationContent()?.inReplyTo?.eventId ?: return null
