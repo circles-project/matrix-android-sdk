@@ -178,7 +178,8 @@ internal class DefaultSendService @AssistedInject constructor(
                             height = messageContent.info.height.toLong(),
                             name = messageContent.body,
                             queryUri = Uri.parse(messageContent.url),
-                            type = ContentAttachmentData.Type.IMAGE
+                            type = ContentAttachmentData.Type.IMAGE,
+                            blurHash = messageContent.info.blurHash
                     )
                     localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
                     internalSendMedia(listOf(localEcho.root), attachmentData, true)
@@ -192,7 +193,8 @@ internal class DefaultSendService @AssistedInject constructor(
                             duration = messageContent.videoInfo?.duration?.toLong(),
                             name = messageContent.body,
                             queryUri = Uri.parse(messageContent.url),
-                            type = ContentAttachmentData.Type.VIDEO
+                            type = ContentAttachmentData.Type.VIDEO,
+                            blurHash = messageContent.videoInfo?.blurHash
                     )
                     localEchoRepository.updateSendState(localEcho.eventId, roomId, SendState.UNSENT)
                     internalSendMedia(listOf(localEcho.root), attachmentData, true)
