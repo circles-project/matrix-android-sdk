@@ -60,7 +60,12 @@ data class VideoInfo(
         /**
          * Information on the encrypted thumbnail file, as specified in End-to-end encryption. Only present if the thumbnail is encrypted.
          */
-        @Json(name = "thumbnail_file") val thumbnailFile: EncryptedFileInfo? = null
+        @Json(name = "thumbnail_file") val thumbnailFile: EncryptedFileInfo? = null,
+
+        /**
+         * Added to support thumbhash blur MSC2448
+         */
+        @Json(name = "blurhash") val blurHash: String? = null
 )
 
 /**
