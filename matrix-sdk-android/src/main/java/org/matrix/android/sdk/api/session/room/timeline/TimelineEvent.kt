@@ -28,7 +28,6 @@ import org.matrix.android.sdk.api.session.events.model.isLiveLocation
 import org.matrix.android.sdk.api.session.events.model.isPoll
 import org.matrix.android.sdk.api.session.events.model.isReply
 import org.matrix.android.sdk.api.session.events.model.isSticker
-import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
 import org.matrix.android.sdk.api.session.room.model.ReadReceipt
@@ -145,16 +144,16 @@ fun TimelineEvent.getEditedEventId(): String? {
  */
 fun TimelineEvent.getLastMessageContent(): MessageContent? {
     return when (root.getClearType()) {
-        EventType.STICKER -> root.getClearContent().toModel<MessageStickerContent>()
+        EventType.STICKER                          -> root.getClearContent().toModel<MessageStickerContent>()
         // XXX
         // Polls/Beacon are not message contents like others as there is no msgtype subtype to discriminate moshi parsing
         // so toModel<MessageContent> won't parse them correctly
         // It's discriminated on event type instead. Maybe it shouldn't be MessageContent at all to avoid confusion?
-        in EventType.POLL_START.values -> (getLastPollEditNewContent() ?: root.getClearContent()).toModel<MessagePollContent>()
-        in EventType.POLL_END.values -> (getLastPollEditNewContent() ?: root.getClearContent()).toModel<MessageEndPollContent>()
+        in EventType.POLL_START.values             -> (getLastPollEditNewContent() ?: root.getClearContent()).toModel<MessagePollContent>()
+        in EventType.POLL_END.values               -> (getLastPollEditNewContent() ?: root.getClearContent()).toModel<MessageEndPollContent>()
         in EventType.STATE_ROOM_BEACON_INFO.values -> (getLastEditNewContent() ?: root.getClearContent()).toModel<MessageBeaconInfoContent>()
-        in EventType.BEACON_LOCATION_DATA.values -> (getLastEditNewContent() ?: root.getClearContent()).toModel<MessageBeaconLocationDataContent>()
-        else -> (getLastEditNewContent() ?: root.getClearContent()).toModel()
+        in EventType.BEACON_LOCATION_DATA.values   -> (getLastEditNewContent() ?: root.getClearContent()).toModel<MessageBeaconLocationDataContent>()
+        else                                       -> (getLastEditNewContent() ?: root.getClearContent()).toModel()
     }
 }
 
@@ -177,30 +176,7 @@ private fun ensureCorrectFormattedBodyInTextReply(messageTextContent: MessageTex
                     format = MessageFormat.FORMAT_MATRIX_HTML,
             )
         }
-        else -> messageTextContent
-    }
-}
-
-private fun TimelineEvent.getLastPollEditNewContent(): Content? {
-    return annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessagePollContent>()?.newContent
-}
-
-/**
- * Not every client sends a formatted body in the last edited event since this is not required in the
- * [Matrix specification](https://spec.matrix.org/v1.4/client-server-api/#applying-mnew_content).
- * We must ensure there is one so that it is still considered as a reply when rendering the message.
- */
-private fun ensureCorrectFormattedBodyInTextReply(messageTextContent: MessageTextContent, previousFormattedBody: String): MessageTextContent {
-    return when {
-        messageTextContent.formattedBody.isNullOrEmpty() && previousFormattedBody.contains(MX_REPLY_END_TAG) -> {
-            // take previous formatted body with the new body content
-            val newFormattedBody = previousFormattedBody.replaceAfterLast(MX_REPLY_END_TAG, messageTextContent.body)
-            messageTextContent.copy(
-                    formattedBody = newFormattedBody,
-                    format = MessageFormat.FORMAT_MATRIX_HTML,
-            )
-        }
-        else -> messageTextContent
+        else                                                                                                 -> messageTextContent
     }
 }
 
