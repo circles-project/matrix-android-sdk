@@ -21,8 +21,8 @@ import org.matrix.android.sdk.api.util.Cancelable
 import java.util.UUID
 
 class CancelableWork(
-        private val workManager: WorkManager,
-        private val workId: UUID
+        val workManager: WorkManager,
+        val workId: UUID
 ) : Cancelable {
 
     override fun cancel() {
