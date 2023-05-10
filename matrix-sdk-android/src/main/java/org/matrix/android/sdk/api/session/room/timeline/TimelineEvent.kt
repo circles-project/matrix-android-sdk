@@ -28,6 +28,7 @@ import org.matrix.android.sdk.api.session.events.model.isLiveLocation
 import org.matrix.android.sdk.api.session.events.model.isPoll
 import org.matrix.android.sdk.api.session.events.model.isReply
 import org.matrix.android.sdk.api.session.events.model.isSticker
+import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.room.model.EventAnnotationsSummary
 import org.matrix.android.sdk.api.session.room.model.ReadReceipt
@@ -157,7 +158,20 @@ fun TimelineEvent.getLastMessageContent(): MessageContent? {
     }
 }
 
-fun TimelineEvent.getLastEditNewContent(): Content? = annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessageContent>()?.newContent
+fun TimelineEvent.getLastEditNewContent(): Content? {
+    val lastContent = annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessageContent>()?.newContent
+    return if (isReply()) {
+        val previousFormattedBody = root.getClearContent().toModel<MessageTextContent>()?.formattedBody
+        if (previousFormattedBody?.isNotEmpty() == true) {
+            val lastMessageContent = lastContent.toModel<MessageTextContent>()
+            lastMessageContent?.let { ensureCorrectFormattedBodyInTextReply(it, previousFormattedBody) }?.toContent() ?: lastContent
+        } else {
+            lastContent
+        }
+    } else {
+        lastContent
+    }
+}
 
 private const val MX_REPLY_END_TAG = "</mx-reply>"
 
@@ -176,6 +190,7 @@ private fun ensureCorrectFormattedBodyInTextReply(messageTextContent: MessageTex
                     format = MessageFormat.FORMAT_MATRIX_HTML,
             )
         }
+
         else                                                                                                 -> messageTextContent
     }
 }
