@@ -7,9 +7,8 @@ def versionName = "1.5.30.6"
 def artifactPath = "$buildDir/outputs/aar/$artifactIdString-release.aar"
 def publicationName = "release"
 def projectId = "16"
-def token = "e3yxa-_Duy7xLabSa7_z"
 
-task sourceJar(type: Jar) {
+tasks.register('sourceJar', Jar) {
     from android.sourceSets.main.java.srcDirs
     classifier = "sources"
 }
@@ -41,12 +40,16 @@ publishing {
         }
     }
     repositories {
+        Properties properties = new Properties()
+        if (rootProject.file("local.properties").exists()) {
+            properties.load(rootProject.file("local.properties").newDataInputStream())
+        }
         maven {
             url "https://gitlab.futo.org/api/v4/projects/$projectId/packages/maven"
             name "GitLab"
             credentials(HttpHeaderCredentials) {
                 name = "Private-Token"
-                value = token
+                value = properties.getProperty("PUBLISH_TOKEN")
             }
             authentication {
                 header(HttpHeaderAuthentication)
