@@ -31,6 +31,7 @@ import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.crypto.BCRYPT_ALGORITHM_BACKUP
+import org.matrix.android.sdk.api.crypto.BSSPEKE_ALGORITHM_BACKUP
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM_BACKUP
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.MatrixError
@@ -235,17 +236,16 @@ internal class DefaultKeysBackupService @Inject constructor(
         }
     }
 
-    override fun prepareBcryptKeysBackupVersion(userName:String, password: String,
-                                          callback: MatrixCallback<MegolmBackupCreationInfo>) {
+    override fun prepareBsSpekeKeysBackupVersion(hashedKey: ByteArray,
+                                                 callback: MatrixCallback<MegolmBackupCreationInfo>) {
         cryptoCoroutineScope.launch(coroutineDispatchers.io) {
             try {
                 val olmPkDecryption = OlmPkDecryption()
-                val generatePrivateKeyResult = BCryptManager.generateBcryptPrivateKeyWithPassword(userName,password)
-                val signalableBackupAuthData =  SignalableMegolmBackupAuthData(
-                    publicKey = olmPkDecryption.setPrivateKey(generatePrivateKeyResult.privateKey),
-                    privateKeySalt = generatePrivateKeyResult.salt,
-                    privateKeyIterations = generatePrivateKeyResult.iterations
-                    )
+                val signalableBackupAuthData = SignalableMegolmBackupAuthData(
+                        publicKey = olmPkDecryption.setPrivateKey(hashedKey),
+                        privateKeySalt = null,
+                        privateKeyIterations = null
+                )
 
                 val canonicalJson = JsonCanonicalizer.getCanonicalJson(Map::class.java, signalableBackupAuthData.signalableJSONDictionary())
 
@@ -266,15 +266,15 @@ internal class DefaultKeysBackupService @Inject constructor(
                 }
 
                 val signedBackupAuthData = MegolmBackupAuthData(
-                    publicKey = signalableBackupAuthData.publicKey,
-                    privateKeySalt = signalableBackupAuthData.privateKeySalt,
-                    privateKeyIterations = signalableBackupAuthData.privateKeyIterations,
-                    signatures = signatures
+                        publicKey = signalableBackupAuthData.publicKey,
+                        privateKeySalt = signalableBackupAuthData.privateKeySalt,
+                        privateKeyIterations = signalableBackupAuthData.privateKeyIterations,
+                        signatures = signatures
                 )
                 val creationInfo = MegolmBackupCreationInfo(
-                    algorithm = BCRYPT_ALGORITHM_BACKUP,
-                    authData = signedBackupAuthData,
-                    recoveryKey = computeRecoveryKey(olmPkDecryption.privateKey())
+                        algorithm = BSSPEKE_ALGORITHM_BACKUP,
+                        authData = signedBackupAuthData,
+                        recoveryKey = computeRecoveryKey(olmPkDecryption.privateKey())
                 )
                 uiHandler.post {
                     callback.onSuccess(creationInfo)
@@ -378,16 +378,18 @@ internal class DefaultKeysBackupService @Inject constructor(
         // val hashServer = keysBackupData?.backupLastServerHash
 
         return when {
-            totalNumberOfKeysLocally < totalNumberOfKeysServer -> {
+            totalNumberOfKeysLocally < totalNumberOfKeysServer  -> {
                 // Server contains more keys than this device
                 true
             }
+
             totalNumberOfKeysLocally == totalNumberOfKeysServer -> {
                 // Same number, compare hash?
                 // TODO We have not found any algorithm to determine if a restore is recommended here. Return false for the moment
                 false
             }
-            else -> false
+
+            else                                                -> false
         }
     }
 
@@ -978,11 +980,12 @@ internal class DefaultKeysBackupService @Inject constructor(
      */
     fun maybeBackupKeys() {
         when {
-            isStuck() -> {
+            isStuck()                                   -> {
                 // If not already done, or in error case, check for a valid backup version on the homeserver.
                 // If there is one, maybeBackupKeys will be called again.
                 checkAndStartKeysBackup()
             }
+
             getState() == KeysBackupState.ReadyToBackUp -> {
                 keysBackupStateManager.state = KeysBackupState.WillBackUp
 
@@ -996,7 +999,8 @@ internal class DefaultKeysBackupService @Inject constructor(
                     uiHandler.post { backupKeys() }
                 }
             }
-            else -> {
+
+            else                                        -> {
                 Timber.v("maybeBackupKeys: Skip it because state: ${getState()}")
             }
         }
@@ -1041,7 +1045,7 @@ internal class DefaultKeysBackupService @Inject constructor(
             override fun onSuccess(data: KeysBackupLastVersionResult) {
                 val localBackupVersion = keysBackupVersion?.version
                 when (data) {
-                    KeysBackupLastVersionResult.NoKeysBackup -> {
+                    KeysBackupLastVersionResult.NoKeysBackup  -> {
                         if (localBackupVersion == null) {
                             // No backup on the server, and backup is not active
                             callback.onSuccess(true)
@@ -1053,6 +1057,7 @@ internal class DefaultKeysBackupService @Inject constructor(
                             keysBackupStateManager.state = KeysBackupState.Disabled
                         }
                     }
+
                     is KeysBackupLastVersionResult.KeysBackup -> {
                         if (localBackupVersion == null) {
                             // backup on the server, and backup is not active
@@ -1147,9 +1152,9 @@ internal class DefaultKeysBackupService @Inject constructor(
         }
     }
 
-/* ==========================================================================================
- * Private
- * ========================================================================================== */
+    /* ==========================================================================================
+     * Private
+     * ========================================================================================== */
 
     /**
      * Extract MegolmBackupAuthData data from a backup version.
@@ -1160,8 +1165,12 @@ internal class DefaultKeysBackupService @Inject constructor(
      */
     private fun getMegolmBackupAuthData(keysBackupData: KeysVersionResult): MegolmBackupAuthData? {
         return keysBackupData
-                .takeIf { it.version.isNotEmpty() &&
-                        (it.algorithm == MXCRYPTO_ALGORITHM_MEGOLM_BACKUP || it.algorithm== BCRYPT_ALGORITHM_BACKUP) }
+                .takeIf {
+                    it.version.isNotEmpty() &&
+                            (it.algorithm == MXCRYPTO_ALGORITHM_MEGOLM_BACKUP
+                                    || it.algorithm == BCRYPT_ALGORITHM_BACKUP
+                                    || it.algorithm == BSSPEKE_ALGORITHM_BACKUP)
+                }
                 ?.getAuthDataAsMegolmBackupAuthData()
                 ?.takeIf { it.publicKey.isNotEmpty() }
     }
@@ -1192,9 +1201,9 @@ internal class DefaultKeysBackupService @Inject constructor(
         }
 
         // Extract the recovery key from the passphrase
-        val data = if(keysBackupData.algorithm == MXCRYPTO_ALGORITHM_MEGOLM_BACKUP){
+        val data = if (keysBackupData.algorithm == MXCRYPTO_ALGORITHM_MEGOLM_BACKUP) {
             retrievePrivateKeyWithPassword(password, authData.privateKeySalt, authData.privateKeyIterations, progressListener)
-        }else{
+        } else {
             BCryptManager.retrievePrivateKeyWithPassword(password, authData.privateKeySalt, authData.privateKeyIterations)
         }
         return computeRecoveryKey(data)
@@ -1433,7 +1442,8 @@ internal class DefaultKeysBackupService @Inject constructor(
                                                     // Do not stay in KeysBackupState.WrongBackUpVersion but check what is available on the homeserver
                                                     checkAndStartKeysBackup()
                                                 }
-                                                else ->
+
+                                                else                                  ->
                                                     // Come back to the ready state so that we will retry on the next received key
                                                     keysBackupStateManager.state = KeysBackupState.ReadyToBackUp
                                             }
@@ -1608,9 +1618,9 @@ internal class DefaultKeysBackupService @Inject constructor(
         private const val KEY_BACKUP_SEND_KEYS_MAX_COUNT = 100
     }
 
-/* ==========================================================================================
- * DEBUG INFO
- * ========================================================================================== */
+    /* ==========================================================================================
+     * DEBUG INFO
+     * ========================================================================================== */
 
     override fun toString() = "KeysBackup for $userId"
 }

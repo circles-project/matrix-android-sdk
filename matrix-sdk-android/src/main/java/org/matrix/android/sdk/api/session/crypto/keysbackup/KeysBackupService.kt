@@ -129,7 +129,7 @@ interface KeysBackupService {
     )
 
 
-    fun prepareBcryptKeysBackupVersion(userName:String, password: String,
+    fun prepareBsSpekeKeysBackupVersion(hashedKey:ByteArray,
                                  callback: MatrixCallback<MegolmBackupCreationInfo>)
     /**
      * Delete a keys backup version. It will delete all backed up keys on the server, and the backup itself.
