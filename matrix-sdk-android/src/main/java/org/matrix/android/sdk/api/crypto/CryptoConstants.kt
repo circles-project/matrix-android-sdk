@@ -33,6 +33,8 @@ const val MXCRYPTO_ALGORITHM_MEGOLM_BACKUP = "m.megolm_backup.v1.curve25519-aes-
 
 const val BCRYPT_ALGORITHM_BACKUP = "org.futo.bcrypt"
 
+const val BSSPEKE_ALGORITHM_BACKUP = "org.futo.bsspeke-ecc"
+
 /**
  * Secured Shared Storage algorithm constant.
  */
