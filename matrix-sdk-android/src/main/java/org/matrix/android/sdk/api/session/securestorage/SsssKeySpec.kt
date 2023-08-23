@@ -49,17 +49,8 @@ data class RawBytesKeySpec(
             }
         }
 
-        fun fromPassphrase(passphrase: String, salt: String, iterations: Int,
-                           progressListener: ProgressListener?, isBsSpeke: Boolean = false): RawBytesKeySpec {
-            return RawBytesKeySpec(
-                    privateKey = if (isBsSpeke) BCryptManager.retrievePrivateKeyWithPassword(passphrase, salt, iterations)
-                    else deriveKey(
-                            passphrase,
-                            salt,
-                            iterations,
-                            progressListener
-                    )
-            )
+        fun fromBCryptPassphrase(passphrase: String, salt: String, iterations: Int): RawBytesKeySpec {
+            return RawBytesKeySpec(BCryptManager.retrievePrivateKeyWithPassword(passphrase, salt, iterations))
         }
     }
 
