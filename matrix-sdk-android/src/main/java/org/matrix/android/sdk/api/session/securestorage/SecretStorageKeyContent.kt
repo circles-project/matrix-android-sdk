@@ -98,6 +98,6 @@ data class SecretStorageKeyContent(
 @JsonClass(generateAdapter = true)
 data class SsssPassphrase(
         @Json(name = "algorithm") val algorithm: String?,
-        @Json(name = "iterations") val iterations: Int,
+        @Json(name = "iterations") val iterations: Int?,
         @Json(name = "salt") val salt: String?
 )
