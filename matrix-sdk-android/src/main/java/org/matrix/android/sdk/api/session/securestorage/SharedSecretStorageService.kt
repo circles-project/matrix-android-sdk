@@ -137,13 +137,18 @@ interface SharedSecretStorageService {
 
     suspend fun requestSecret(name: String, myOtherDeviceId: String)
 
-    suspend fun generateKeyWithPassphrase(
+    suspend fun generateBCryptKeyWithPassphrase(
             keyId: String,
-            keyName: String,
             passphrase: String,
             keySigner: KeySigner,
             progressListener: ProgressListener?,
-            userName: String? = null,
-            isBsSpeke: Boolean = false
+            userName: String
+    ): SsssKeyCreationInfo
+
+    suspend fun generateBsSpekeWithPassphrase(
+            keyId: String,
+            privateKey: ByteArray,
+            keySigner: KeySigner,
+            progressListener: ProgressListener?
     ): SsssKeyCreationInfo
 }
