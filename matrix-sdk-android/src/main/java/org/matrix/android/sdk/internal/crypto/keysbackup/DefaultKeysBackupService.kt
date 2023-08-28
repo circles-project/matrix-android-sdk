@@ -237,14 +237,12 @@ internal class DefaultKeysBackupService @Inject constructor(
         }
     }
 
-    override fun prepareRandomKeyBackupVersion(callback: MatrixCallback<MegolmBackupCreationInfo>) {
+    override fun prepareKeysBackupVersion(key: ByteArray, callback: MatrixCallback<MegolmBackupCreationInfo>) {
         cryptoCoroutineScope.launch(coroutineDispatchers.io) {
             try {
-                val privateKey = ByteArray(32)
-                SecureRandom().nextBytes(privateKey)
                 val olmPkDecryption = OlmPkDecryption()
                 val signalableBackupAuthData = SignalableMegolmBackupAuthData(
-                        publicKey = olmPkDecryption.setPrivateKey(privateKey),
+                        publicKey = olmPkDecryption.setPrivateKey(key),
                         privateKeySalt = null,
                         privateKeyIterations = null
                 )
