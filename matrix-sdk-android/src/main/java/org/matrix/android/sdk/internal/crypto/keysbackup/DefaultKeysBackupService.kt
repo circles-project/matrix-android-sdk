@@ -94,6 +94,7 @@ import org.matrix.olm.OlmPkEncryption
 import org.matrix.olm.OlmPkMessage
 import timber.log.Timber
 import java.security.InvalidParameterException
+import java.security.SecureRandom
 import javax.inject.Inject
 import kotlin.random.Random
 
@@ -236,13 +237,14 @@ internal class DefaultKeysBackupService @Inject constructor(
         }
     }
 
-    override fun prepareBsSpekeKeysBackupVersion(hashedKey: ByteArray,
-                                                 callback: MatrixCallback<MegolmBackupCreationInfo>) {
+    override fun prepareRandomKeyBackupVersion(callback: MatrixCallback<MegolmBackupCreationInfo>) {
         cryptoCoroutineScope.launch(coroutineDispatchers.io) {
             try {
+                val privateKey = ByteArray(32)
+                SecureRandom().nextBytes(privateKey)
                 val olmPkDecryption = OlmPkDecryption()
                 val signalableBackupAuthData = SignalableMegolmBackupAuthData(
-                        publicKey = olmPkDecryption.setPrivateKey(hashedKey),
+                        publicKey = olmPkDecryption.setPrivateKey(privateKey),
                         privateKeySalt = null,
                         privateKeyIterations = null
                 )
@@ -272,7 +274,7 @@ internal class DefaultKeysBackupService @Inject constructor(
                         signatures = signatures
                 )
                 val creationInfo = MegolmBackupCreationInfo(
-                        algorithm = BSSPEKE_ALGORITHM_BACKUP,
+                        algorithm = MXCRYPTO_ALGORITHM_MEGOLM_BACKUP,
                         authData = signedBackupAuthData,
                         recoveryKey = computeRecoveryKey(olmPkDecryption.privateKey())
                 )

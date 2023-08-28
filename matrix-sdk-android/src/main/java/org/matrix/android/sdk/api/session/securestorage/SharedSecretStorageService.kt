@@ -145,10 +145,9 @@ interface SharedSecretStorageService {
             userName: String
     ): SsssKeyCreationInfo
 
-    suspend fun generateBsSpekeWithPassphrase(
+    suspend fun generateBsSpekeKeyInfo(
             keyId: String,
             privateKey: ByteArray,
-            keySigner: KeySigner,
-            progressListener: ProgressListener?
+            keySigner: KeySigner
     ): SsssKeyCreationInfo
 }

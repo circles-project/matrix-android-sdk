@@ -427,11 +427,10 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
         }
     }
 
-    override suspend fun generateBsSpekeWithPassphrase(
+    override suspend fun generateBsSpekeKeyInfo(
             keyId: String,
             privateKey: ByteArray,
-            keySigner: KeySigner,
-            progressListener: ProgressListener?
+            keySigner: KeySigner
     ): SsssKeyCreationInfo {
         return withContext(cryptoCoroutineScope.coroutineContext + coroutineDispatchers.computation) {
             val storageKeyContent = SecretStorageKeyContent(
