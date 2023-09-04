@@ -435,7 +435,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                         width = width?.toInt() ?: 0,
                         height = height?.toInt() ?: 0,
                         size = attachment.size,
-                        blurHash = attachment.blurHash
+                        thumbHash = attachment.thumbHash
                 ),
                 url = attachment.queryUri.toString(),
                 relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) }
@@ -479,7 +479,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                         // Glide will be able to use the local path and extract a thumbnail.
                         thumbnailUrl = attachment.queryUri.toString(),
                         thumbnailInfo = thumbnailInfo,
-                        blurHash = attachment.blurHash
+                        thumbHash = attachment.thumbHash
                 ),
                 url = attachment.queryUri.toString(),
                 relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) }

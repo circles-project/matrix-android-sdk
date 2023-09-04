@@ -38,7 +38,7 @@ data class ContentAttachmentData(
         val mimeType: String?,
         val type: Type,
         val waveform: List<Int>? = null,
-        val blurHash: String? = null
+        val thumbHash: String? = null
 ) : Parcelable {
 
     @JsonClass(generateAdapter = false)

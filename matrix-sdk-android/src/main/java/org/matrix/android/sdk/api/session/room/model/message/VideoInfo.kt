@@ -65,7 +65,12 @@ data class VideoInfo(
         /**
          * Added to support thumbhash blur MSC2448
          */
-        @Json(name = "blurhash") val blurHash: String? = null
+        @Json(name = "blurhash") val blurHash: String? = null,
+
+        /**
+         * Added to support thumbhash blur MSC2448
+         */
+        @Json(name = "thumbhash") val thumbHash: String? = null
 )
 
 /**
