@@ -427,6 +427,14 @@ internal class LocalEchoEventFactory @Inject constructor(
             }
         }
 
+        val thumbnailInfo = thumbnailExtractor.extractThumbnail(attachment)?.let {
+            ThumbnailInfo(
+                    width = it.width,
+                    height = it.height,
+                    size = it.size,
+                    mimeType = it.mimeType
+            )
+        }
         val content = MessageImageContent(
                 msgType = MessageType.MSGTYPE_IMAGE,
                 body = attachment.name ?: "image",
@@ -435,6 +443,8 @@ internal class LocalEchoEventFactory @Inject constructor(
                         width = width?.toInt() ?: 0,
                         height = height?.toInt() ?: 0,
                         size = attachment.size,
+                        thumbnailUrl = attachment.queryUri.toString(),
+                        thumbnailInfo = thumbnailInfo,
                         thumbHash = attachment.thumbHash
                 ),
                 url = attachment.queryUri.toString(),

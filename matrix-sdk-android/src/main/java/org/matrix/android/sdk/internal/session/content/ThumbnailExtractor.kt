@@ -18,7 +18,12 @@ package org.matrix.android.sdk.internal.session.content
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.media.MediaMetadataRetriever
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import android.util.Size
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
 import org.matrix.android.sdk.api.util.MimeTypes
 import timber.log.Timber
@@ -38,10 +43,11 @@ internal class ThumbnailExtractor @Inject constructor(
     )
 
     fun extractThumbnail(attachment: ContentAttachmentData): ThumbnailData? {
-        return if (attachment.type == ContentAttachmentData.Type.VIDEO) {
-            extractVideoThumbnail(attachment)
-        } else {
-            null
+        if (attachment.mimeType == MimeTypes.Gif || attachment.mimeType == MimeTypes.Webp) return null
+        return when (attachment.type) {
+            ContentAttachmentData.Type.VIDEO -> extractVideoThumbnail(attachment)
+            ContentAttachmentData.Type.IMAGE -> extractImageThumbnail(attachment)
+            else                             -> null
         }
     }
 
@@ -50,7 +56,8 @@ internal class ThumbnailExtractor @Inject constructor(
         val mediaMetadataRetriever = MediaMetadataRetriever()
         try {
             mediaMetadataRetriever.setDataSource(context, attachment.queryUri)
-            mediaMetadataRetriever.frameAtTime?.let { thumbnail ->
+            val scaledBitmap = mediaMetadataRetriever.frameAtTime?.let { createScaledThumbnailBitmap(it) }
+            scaledBitmap?.let { thumbnail ->
                 val outputStream = ByteArrayOutputStream()
                 thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
                 val thumbnailWidth = thumbnail.width
@@ -74,5 +81,45 @@ internal class ThumbnailExtractor @Inject constructor(
             mediaMetadataRetriever.release()
         }
         return thumbnailData
+    }
+
+    private fun extractImageThumbnail(attachment: ContentAttachmentData): ThumbnailData? {
+        var thumbnailData: ThumbnailData? = null
+        try {
+            val thumbnail = createScaledThumbnailBitmap(getBitmapFromUri(attachment.queryUri))
+            val outputStream = ByteArrayOutputStream()
+            thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+            val thumbnailWidth = thumbnail.width
+            val thumbnailHeight = thumbnail.height
+            val thumbnailSize = outputStream.size()
+            thumbnailData = ThumbnailData(
+                    width = thumbnailWidth,
+                    height = thumbnailHeight,
+                    size = thumbnailSize.toLong(),
+                    bytes = outputStream.toByteArray(),
+                    mimeType = MimeTypes.Jpeg
+            )
+            thumbnail.recycle()
+            outputStream.reset()
+        } catch (e: Exception) {
+            Timber.e(e, "Cannot extract image thumbnail")
+        }
+        return thumbnailData
+    }
+
+    private fun getBitmapFromUri(uri: Uri) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri))
+    } else {
+        MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+    }
+
+    private fun createScaledThumbnailBitmap(originalBitmap: Bitmap): Bitmap {
+        val maxThumbnailSize = 800
+        val originalWidth = originalBitmap.width
+        val originalHeight = originalBitmap.height
+        val aspectRatio = originalWidth.toFloat() / originalHeight.toFloat()
+        val size = if (originalHeight > originalWidth) Size((maxThumbnailSize * aspectRatio).toInt(), maxThumbnailSize)
+        else Size(maxThumbnailSize, (maxThumbnailSize / aspectRatio).toInt())
+        return Bitmap.createScaledBitmap(originalBitmap, size.width, size.height, true)
     }
 }

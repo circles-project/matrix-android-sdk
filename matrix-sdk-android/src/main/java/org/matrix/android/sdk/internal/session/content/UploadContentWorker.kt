@@ -185,6 +185,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 } else if (attachment.type == ContentAttachmentData.Type.VIDEO &&
                         // Do not compress gif
                         attachment.mimeType != MimeTypes.Gif &&
+                        attachment.mimeType != MimeTypes.Webp &&
                         params.compressBeforeSending) {
                     fileToUpload = videoCompressor.compress(workingFile, object : ProgressListener {
                         override fun onProgress(progress: Int, total: Int) {
@@ -193,7 +194,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                     })
                             .let { videoCompressionResult ->
                                 when (videoCompressionResult) {
-                                    is VideoCompressionResult.Success -> {
+                                    is VideoCompressionResult.Success           -> {
                                         val compressedFile = videoCompressionResult.compressedFile
                                         var compressedWidth: Int? = null
                                         var compressedHeight: Int? = null
@@ -217,10 +218,12 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                                         compressedFile
                                                 .also { filesToDelete.add(it) }
                                     }
+
                                     VideoCompressionResult.CompressionNotNeeded,
                                     VideoCompressionResult.CompressionCancelled -> {
                                         workingFile
                                     }
+
                                     is VideoCompressionResult.CompressionFailed -> {
                                         Timber.e(videoCompressionResult.failure, "Video compression failed")
                                         workingFile
@@ -413,11 +416,11 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
             // Retrieve potential additional content from the original event
             val additionalContent = content.orEmpty() - messageContent?.toContent().orEmpty().keys
             val updatedContent = when (messageContent) {
-                is MessageImageContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes)
+                is MessageImageContent -> messageContent.update(url, encryptedFileInfo, thumbnailUrl, thumbnailEncryptedFileInfo, newAttachmentAttributes)
                 is MessageVideoContent -> messageContent.update(url, encryptedFileInfo, thumbnailUrl, thumbnailEncryptedFileInfo, newAttachmentAttributes)
-                is MessageFileContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize)
+                is MessageFileContent  -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize)
                 is MessageAudioContent -> messageContent.update(url, encryptedFileInfo, newAttachmentAttributes.newFileSize)
-                else -> messageContent
+                else                   -> messageContent
             }
             event.content = ContentMapper.map(updatedContent.toContent().plus(additionalContent))
         }
@@ -430,12 +433,16 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
     private fun MessageImageContent.update(
             url: String,
             encryptedFileInfo: EncryptedFileInfo?,
+            thumbnailUrl: String?,
+            thumbnailEncryptedFileInfo: EncryptedFileInfo?,
             newAttachmentAttributes: NewAttachmentAttributes?
     ): MessageImageContent {
         return copy(
                 url = if (encryptedFileInfo == null) url else null,
                 encryptedFileInfo = encryptedFileInfo?.copy(url = url),
                 info = info?.copy(
+                        thumbnailUrl = if (thumbnailEncryptedFileInfo == null) thumbnailUrl else null,
+                        thumbnailFile = thumbnailEncryptedFileInfo?.copy(url = thumbnailUrl),
                         width = newAttachmentAttributes?.newWidth ?: info.width,
                         height = newAttachmentAttributes?.newHeight ?: info.height,
                         size = newAttachmentAttributes?.newFileSize ?: info.size
