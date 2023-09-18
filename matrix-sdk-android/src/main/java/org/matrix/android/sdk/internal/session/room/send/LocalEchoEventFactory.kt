@@ -333,10 +333,6 @@ internal class LocalEchoEventFactory @Inject constructor(
                 bodyFormatted,
                 newBodyFormatted
         )
-        //
-        // > <@alice:example.org> This is the original body
-        //
-        val replyFallback = buildReplyFallback(body, originalEvent.root.senderId ?: "", newBodyText)
 
         return createMessageEvent(
                 roomId,
@@ -347,7 +343,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                         newContent = MessageTextContent(
                                 msgType = msgType,
                                 format = MessageFormat.FORMAT_MATRIX_HTML,
-                                body = replyFallback,
+                                body = newBodyText,
                                 formattedBody = replyFormatted
                         )
                                 .toContent()
@@ -639,16 +635,12 @@ internal class LocalEchoEventFactory @Inject constructor(
                 bodyFormatted,
                 finalReplyTextFormatted
         )
-        //
-        // > <@alice:example.org> This is the original body
-        //
-        val replyFallback = buildReplyFallback(body, userId, replyText.toString())
 
         val eventId = eventReplied.root.eventId ?: return null
         return MessageTextContent(
                 msgType = MessageType.MSGTYPE_TEXT,
                 format = MessageFormat.FORMAT_MATRIX_HTML,
-                body = replyFallback,
+                body = replyText.toString(),
                 formattedBody = replyFormatted,
                 relatesTo = generateReplyRelationContent(
                         eventId = eventId,
