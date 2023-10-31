@@ -22,8 +22,8 @@ import java.util.UUID
 
 //Changed for Circles
 class CancelableWork(
-        private val workManager: WorkManager,
-        private val workId: UUID
+        val workManager: WorkManager,
+        val workId: UUID
 ) : Cancelable {
 
     override fun cancel() {
