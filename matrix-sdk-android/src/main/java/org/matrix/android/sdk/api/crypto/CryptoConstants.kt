@@ -31,9 +31,9 @@ const val MXCRYPTO_ALGORITHM_MEGOLM = "m.megolm.v1.aes-sha2"
  */
 const val MXCRYPTO_ALGORITHM_MEGOLM_BACKUP = "m.megolm_backup.v1.curve25519-aes-sha2"
 
-const val BCRYPT_ALGORITHM_BACKUP = "org.futo.bcrypt"
+const val BCRYPT_ALGORITHM_BACKUP = "org.futo.bcrypt"  //Added for Circles
 
-const val BSSPEKE_ALGORITHM_BACKUP = "org.futo.bsspeke-ecc"
+const val BSSPEKE_ALGORITHM_BACKUP = "org.futo.bsspeke-ecc" //Added for Circles
 
 /**
  * Secured Shared Storage algorithm constant.
@@ -46,3 +46,6 @@ const val SSSS_ALGORITHM_AES_HMAC_SHA2 = "m.secret_storage.v1.aes-hmac-sha2"
 // TODO Refacto: use this constants everywhere
 const val ed25519 = "ed25519"
 const val curve25519 = "curve25519"
+
+const val MEGOLM_DEFAULT_ROTATION_MSGS = 100L
+const val MEGOLM_DEFAULT_ROTATION_PERIOD_MS = 7 * 24 * 3600 * 1000L

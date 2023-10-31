@@ -28,7 +28,6 @@ import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.auth.data.HomeServerConnectionConfig
 import org.matrix.android.sdk.api.auth.data.LoginFlowResult
 import org.matrix.android.sdk.api.auth.data.LoginFlowTypes
-import org.matrix.android.sdk.api.auth.data.SessionParams
 import org.matrix.android.sdk.api.auth.login.LoginWizard
 import org.matrix.android.sdk.api.auth.registration.RegistrationWizard
 import org.matrix.android.sdk.api.auth.wellknown.WellknownResult
@@ -288,7 +287,7 @@ internal class DefaultAuthenticationService @Inject constructor(
 
                 getLoginFlowResult(newAuthAPI, versions, wellknownResult.homeServerUrl)
             }
-            else                      -> throw Failure.OtherServerError("", HttpsURLConnection.HTTP_NOT_FOUND /* 404 */)
+            else -> throw Failure.OtherServerError("", HttpsURLConnection.HTTP_NOT_FOUND /* 404 */)
         }
     }
 
@@ -299,9 +298,12 @@ internal class DefaultAuthenticationService @Inject constructor(
         }
 
         // If an m.login.sso flow is present that is flagged as being for MSC3824 OIDC compatibility then we only return that flow
-        val oidcCompatibilityFlow = loginFlowResponse.flows.orEmpty().firstOrNull { it.type == "m.login.sso" && it.delegatedOidcCompatibilty == true }
+        val oidcCompatibilityFlow = loginFlowResponse.flows.orEmpty().firstOrNull { it.type == "m.login.sso" && it.delegatedOidcCompatibility == true }
         val flows = if (oidcCompatibilityFlow != null) listOf(oidcCompatibilityFlow) else loginFlowResponse.flows
 
+        val supportsGetLoginTokenFlow = loginFlowResponse.flows.orEmpty().firstOrNull { it.type == "m.login.token" && it.getLoginToken == true } != null
+
+        @Suppress("DEPRECATION")
         return LoginFlowResult(
                 supportedLoginTypes = flows.orEmpty().mapNotNull { it.type },
                 ssoIdentityProviders = flows.orEmpty().firstOrNull { it.type == LoginFlowTypes.SSO }?.ssoIdentityProvider,
@@ -310,7 +312,7 @@ internal class DefaultAuthenticationService @Inject constructor(
                 isOutdatedHomeserver = !versions.isSupportedBySdk(),
                 hasOidcCompatibilityFlow = oidcCompatibilityFlow != null,
                 isLogoutDevicesSupported = versions.doesServerSupportLogoutDevices(),
-                isLoginWithQrSupported = versions.doesServerSupportQrCodeLogin(),
+                isLoginWithQrSupported = supportsGetLoginTokenFlow || versions.doesServerSupportQrCodeLogin(),
         )
     }
 
@@ -445,57 +447,5 @@ internal class DefaultAuthenticationService @Inject constructor(
                 .newBuilder()
                 .addSocketFactory(homeServerConnectionConfig)
                 .build()
-    }
-
-    //Added to initiate auth without GET /login
-    override suspend fun initiateAuth(homeServerConnectionConfig: HomeServerConnectionConfig): String {
-        val result = runCatching {
-            getHomeServerUserFromWellKnown(homeServerConnectionConfig)
-        }
-        return result.fold(
-                {
-                    val alteredHomeServerConnectionConfig = homeServerConnectionConfig.copy(
-                            homeServerUriBase = Uri.parse(it)
-                    )
-
-                    pendingSessionData = PendingSessionData(alteredHomeServerConnectionConfig)
-                            .also { data -> pendingSessionStore.savePendingSessionData(data) }
-                    it
-                },
-                {
-                    if (it is UnrecognizedCertificateException) {
-                        throw Failure.UnrecognizedCertificateFailure(homeServerConnectionConfig.homeServerUriBase.toString(), it.fingerprint)
-                    } else {
-                        throw it
-                    }
-                }
-        )
-    }
-
-    //Added to initiate auth without GET /login
-    private suspend fun getHomeServerUserFromWellKnown(homeServerConnectionConfig: HomeServerConnectionConfig): String {
-        val domain = homeServerConnectionConfig.homeServerUri.host
-                ?: throw Failure.OtherServerError("", HttpsURLConnection.HTTP_NOT_FOUND /* 404 */)
-
-        return when (val wellKnownResult = getWellknownTask.execute(GetWellknownTask.Params(domain, homeServerConnectionConfig))) {
-            is WellknownResult.Prompt -> wellKnownResult.homeServerUrl
-            else                      -> throw Failure.OtherServerError("", HttpsURLConnection.HTTP_NOT_FOUND /* 404 */)
-        }
-    }
-
-    //Added for switch user
-    override suspend fun switchToSessionWithId(id: String) {
-        sessionManager.setActiveSessionAsLast(id)
-    }
-
-    //Added for switch user
-    override fun getAllAuthSessionsParams(): List<SessionParams> = sessionManager.getAllSessionParams()
-
-    //Added for switch user
-    override fun createSessionFromParams(params: SessionParams): Session = sessionManager.getOrCreateSession(params)
-
-    //Added for switch user
-    override suspend fun removeSession(sessionId: String) {
-        sessionManager.removeSession(sessionId)
     }
 }

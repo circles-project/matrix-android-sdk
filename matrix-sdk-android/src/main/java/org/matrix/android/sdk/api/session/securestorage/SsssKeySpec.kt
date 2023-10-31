@@ -48,7 +48,7 @@ data class RawBytesKeySpec(
                 )
             }
         }
-
+        //Added for BCrypt support
         fun fromBCryptPassphrase(passphrase: String, salt: String, iterations: Int): RawBytesKeySpec {
             return RawBytesKeySpec(BCryptManager.retrievePrivateKeyWithPassword(passphrase, salt, iterations))
         }

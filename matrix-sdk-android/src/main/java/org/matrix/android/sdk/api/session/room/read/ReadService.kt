@@ -53,7 +53,7 @@ interface ReadService {
      */
     fun isEventRead(eventId: String): Boolean
 
-    //Added for viewers count
+    //Added for viewers count (Circles)
     fun isEventRead(eventId: String, userId: String): Boolean
 
     /**

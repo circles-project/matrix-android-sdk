@@ -81,8 +81,8 @@ internal class DefaultRoomService @Inject constructor(
         private val roomChangeMembershipStateDataSource: RoomChangeMembershipStateDataSource,
         private val leaveRoomTask: LeaveRoomTask,
         private val roomSummaryUpdater: RoomSummaryUpdater,
-        private val knockTask: KnockTask,
-        private val sendStateTask: SendStateTask
+        private val knockTask: KnockTask, //Added for Circles
+        private val sendStateTask: SendStateTask //Added for Circles
 ) : RoomService {
 
     override suspend fun createRoom(createRoomParams: CreateRoomParams): String {
@@ -157,6 +157,12 @@ internal class DefaultRoomService @Inject constructor(
             sortOrder: RoomSortOrder
     ): LiveData<PagedList<RoomSummary>> {
         return roomSummaryDataSource.getSortedPagedRoomSummariesLive(queryParams, pagedListConfig, sortOrder)
+    }
+
+    override fun roomSummariesChangesLive(
+            queryParams: RoomSummaryQueryParams,
+            sortOrder: RoomSortOrder): LiveData<List<Unit>> {
+        return roomSummaryDataSource.getRoomSummariesChangesLive(queryParams, sortOrder)
     }
 
     override fun getFilteredPagedRoomSummariesLive(
@@ -268,10 +274,12 @@ internal class DefaultRoomService @Inject constructor(
         return roomSummaryDataSource.getAllRoomSummaryChildOfLive(spaceId, memberships)
     }
 
+    //Added for Circles
     override suspend fun knock(roomId: String, reason: String?) {
         knockTask.execute(KnockTask.Params(roomId, reason))
     }
 
+    //Added for Circles
     override suspend fun sendRoomState(roomId: String, stateKey: String, eventType: String, body: JsonDict) {
         val params = SendStateTask.Params(
                 roomId = roomId,

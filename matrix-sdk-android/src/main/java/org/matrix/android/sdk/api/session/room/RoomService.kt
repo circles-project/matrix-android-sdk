@@ -246,6 +246,15 @@ interface RoomService {
     ): LiveData<PagedList<RoomSummary>>
 
     /**
+     * Only notifies when this query has changes.
+     * It doesn't load any items in memory
+     */
+    fun roomSummariesChangesLive(
+            queryParams: RoomSummaryQueryParams,
+            sortOrder: RoomSortOrder = RoomSortOrder.ACTIVITY
+    ): LiveData<List<Unit>>
+
+    /**
      * Get's a live paged list from a filter that can be dynamically updated.
      *
      * @param queryParams The filter to use
@@ -295,9 +304,9 @@ interface RoomService {
      */
     fun refreshJoinedRoomSummaryPreviews(roomId: String?)
 
-    //Ask permission to join the room.
+    //Ask permission to join the room. Added for Circles
     suspend fun knock(roomId: String, reason: String? = null)
 
-    //Send custom room state event
+    //Send custom room state event. Added for Circles
     suspend fun sendRoomState(roomId: String, stateKey: String, eventType: String, body: JsonDict)
 }

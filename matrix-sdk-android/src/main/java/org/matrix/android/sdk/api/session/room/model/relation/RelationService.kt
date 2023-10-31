@@ -96,13 +96,14 @@ interface RelationService {
      * @param newBodyAutoMarkdown true to parse markdown on the new body
      * @param compatibilityBodyText The text that will appear on clients that don't support yet edition
      */
+    //Removed * from compatibilityBodyText for Circles
     fun editTextMessage(
             targetEvent: TimelineEvent,
             msgType: String,
             newBodyText: CharSequence,
             newFormattedBodyText: CharSequence? = null,
             newBodyAutoMarkdown: Boolean,
-            compatibilityBodyText: String = newBodyText.toString()
+            compatibilityBodyText: String = "* $newBodyText"
     ): Cancelable
 
     /**
@@ -114,12 +115,13 @@ interface RelationService {
      * @param newFormattedBodyText The formatted edited body (stripped from in reply to content)
      * @param compatibilityBodyText The text that will appear on clients that don't support yet edition
      */
+    //Removed * from compatibilityBodyText for Circles
     fun editReply(
             replyToEdit: TimelineEvent,
             originalTimelineEvent: TimelineEvent,
             newBodyText: String,
             newFormattedBodyText: String? = null,
-            compatibilityBodyText: String = newBodyText
+            compatibilityBodyText: String = "* $newBodyText"
     ): Cancelable
 
     /**

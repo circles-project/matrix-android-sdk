@@ -30,7 +30,7 @@ object MimeTypes {
     const val BadJpg = "image/jpg"
     const val Jpeg = "image/jpeg"
     const val Gif = "image/gif"
-    const val Webp = "image/webp"
+    const val Webp = "image/webp" //Added for Circles
 
     const val Ogg = "audio/ogg"
 

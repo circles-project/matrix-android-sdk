@@ -182,8 +182,7 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
                             throw SharedSecretStorageError.UnknownAlgorithm(key.keyInfo.content.algorithm ?: "")
                         }
                     }
-
-                    is KeyInfoResult.Error   -> throw key.error
+                    is KeyInfoResult.Error -> throw key.error
                 }
             }
 
@@ -389,10 +388,16 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
         return IntegrityResult.Success(keyInfo.content.passphrase != null)
     }
 
+    @Deprecated("Requesting custom secrets not yet support by rust stack, prefer requestMissingSecrets")
     override suspend fun requestSecret(name: String, myOtherDeviceId: String) {
         secretShareManager.requestSecretTo(myOtherDeviceId, name)
     }
 
+    override suspend fun requestMissingSecrets() {
+        secretShareManager.requestMissingSecrets()
+    }
+
+    //Added for Circles
     override suspend fun generateBCryptKeyWithPassphrase(
             keyId: String,
             passphrase: String,
@@ -427,6 +432,7 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
         }
     }
 
+    //Added for Circles
     override suspend fun generateBsSpekeKeyInfo(
             keyId: String,
             privateKey: ByteArray,

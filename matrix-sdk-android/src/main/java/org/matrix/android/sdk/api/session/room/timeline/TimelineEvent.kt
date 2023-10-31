@@ -145,19 +145,20 @@ fun TimelineEvent.getEditedEventId(): String? {
  */
 fun TimelineEvent.getLastMessageContent(): MessageContent? {
     return when (root.getClearType()) {
-        EventType.STICKER                          -> root.getClearContent().toModel<MessageStickerContent>()
+        EventType.STICKER -> root.getClearContent().toModel<MessageStickerContent>()
         // XXX
         // Polls/Beacon are not message contents like others as there is no msgtype subtype to discriminate moshi parsing
         // so toModel<MessageContent> won't parse them correctly
         // It's discriminated on event type instead. Maybe it shouldn't be MessageContent at all to avoid confusion?
-        in EventType.POLL_START.values             -> (getLastPollEditNewContent() ?: root.getClearContent()).toModel<MessagePollContent>()
-        in EventType.POLL_END.values               -> (getLastPollEditNewContent() ?: root.getClearContent()).toModel<MessageEndPollContent>()
+        in EventType.POLL_START.values -> (getLastPollEditNewContent() ?: root.getClearContent()).toModel<MessagePollContent>()
+        in EventType.POLL_END.values -> (getLastPollEditNewContent() ?: root.getClearContent()).toModel<MessageEndPollContent>()
         in EventType.STATE_ROOM_BEACON_INFO.values -> (getLastEditNewContent() ?: root.getClearContent()).toModel<MessageBeaconInfoContent>()
-        in EventType.BEACON_LOCATION_DATA.values   -> (getLastEditNewContent() ?: root.getClearContent()).toModel<MessageBeaconLocationDataContent>()
-        else                                       -> (getLastEditNewContent() ?: root.getClearContent()).toModel()
+        in EventType.BEACON_LOCATION_DATA.values -> (getLastEditNewContent() ?: root.getClearContent()).toModel<MessageBeaconLocationDataContent>()
+        else -> (getLastEditNewContent() ?: root.getClearContent()).toModel()
     }
 }
 
+//Changed for Circles
 fun TimelineEvent.getLastEditNewContent(): Content? {
     val lastContent = annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessageContent>()?.newContent
     return if (isReply()) {
@@ -190,8 +191,7 @@ private fun ensureCorrectFormattedBodyInTextReply(messageTextContent: MessageTex
                     format = MessageFormat.FORMAT_MATRIX_HTML,
             )
         }
-
-        else                                                                                                 -> messageTextContent
+        else -> messageTextContent
     }
 }
 

@@ -63,12 +63,12 @@ data class VideoInfo(
         @Json(name = "thumbnail_file") val thumbnailFile: EncryptedFileInfo? = null,
 
         /**
-         * Added to support thumbhash blur MSC2448
+         * Added to support thumbhash blur MSC2448 //Added for Circles
          */
         @Json(name = "blurhash") val blurHash: String? = null,
 
         /**
-         * Added to support thumbhash blur MSC2448
+         * Added to support thumbhash blur MSC2448 //Added for Circles
          */
         @Json(name = "thumbhash") val thumbHash: String? = null
 )

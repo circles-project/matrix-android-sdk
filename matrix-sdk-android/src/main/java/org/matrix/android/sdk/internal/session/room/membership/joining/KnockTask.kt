@@ -22,6 +22,7 @@ import org.matrix.android.sdk.internal.session.room.RoomAPI
 import org.matrix.android.sdk.internal.task.Task
 import javax.inject.Inject
 
+//Created for Circles
 internal interface KnockTask : Task<KnockTask.Params, Unit> {
     data class Params(
             val roomId: String,

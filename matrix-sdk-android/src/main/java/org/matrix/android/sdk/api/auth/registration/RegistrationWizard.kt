@@ -17,7 +17,6 @@
 package org.matrix.android.sdk.api.auth.registration
 
 import org.matrix.android.sdk.api.util.JsonDict
-import org.matrix.android.sdk.internal.auth.registration.AddThreePidRegistrationResponse
 
 /**
  * Set of methods to be able to create an account on a homeserver.
@@ -56,9 +55,9 @@ interface RegistrationWizard {
      * @param initialDeviceDisplayName the device display name
      */
     suspend fun createAccount(
-        userName: String?,
-        password: String?,
-        initialDeviceDisplayName: String?
+            userName: String?,
+            password: String?,
+            initialDeviceDisplayName: String?
     ): RegistrationResult
 
     /**
@@ -83,7 +82,7 @@ interface RegistrationWizard {
      * Current registration "session" param will be included into authParams by default.
      * The authParams should contain at least one entry "type" with a String value.
      */
-    suspend fun registrationCustom(authParams: JsonDict, initialDeviceDisplayName: String? = null): RegistrationResult
+    suspend fun registrationCustom(authParams: JsonDict): RegistrationResult
 
     /**
      * Perform the "m.login.email.identity" or "m.login.msisdn" stage.
@@ -91,21 +90,18 @@ interface RegistrationWizard {
      * @param threePid the threePid to add to the account. If this is an email, the homeserver will send an email
      * to validate it. For a msisdn a SMS will be sent.
      */
-    suspend fun addThreePid(threePid: RegisterThreePid): AddThreePidRegistrationResponse
+    suspend fun addThreePid(threePid: RegisterThreePid): RegistrationResult
 
     /**
      * Ask the homeserver to send again the current threePid (email or msisdn).
      */
-    suspend fun sendAgainThreePid(): AddThreePidRegistrationResponse
+    suspend fun sendAgainThreePid(): RegistrationResult
 
     /**
      * Send the code received by SMS to validate a msisdn.
      * If the code is correct, the registration request will be executed to validate the msisdn.
      */
-    suspend fun handleValidateThreePid(
-        code: String,
-        submitFallbackUrl: String? = null
-    ): RegistrationResult
+    suspend fun handleValidateThreePid(code: String): RegistrationResult
 
     /**
      * Useful to poll the homeserver when waiting for the email to be validated by the user.
@@ -125,7 +121,4 @@ interface RegistrationWizard {
      * called successfully.
      */
     fun isRegistrationStarted(): Boolean
-
-    //Added to support few registration flows
-    suspend fun getAllRegistrationFlows(): List<List<Stage>>
 }
