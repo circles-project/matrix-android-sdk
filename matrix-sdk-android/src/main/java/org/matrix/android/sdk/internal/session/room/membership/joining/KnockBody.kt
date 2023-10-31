@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.session.room.membership.joining
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
+//Created for Circles
 @JsonClass(generateAdapter = true)
 internal data class KnockBody(
         @Json(name = "reason") val reason: String?

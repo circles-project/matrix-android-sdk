@@ -43,7 +43,6 @@ import org.matrix.android.sdk.internal.query.process
 import org.matrix.android.sdk.internal.session.room.RoomDataSource
 import org.matrix.android.sdk.internal.session.room.membership.admin.MembershipAdminTask
 import org.matrix.android.sdk.internal.session.room.membership.joining.InviteTask
-import org.matrix.android.sdk.internal.session.room.membership.joining.KnockTask
 import org.matrix.android.sdk.internal.session.room.membership.threepid.InviteThreePidTask
 import org.matrix.android.sdk.internal.util.fetchCopied
 

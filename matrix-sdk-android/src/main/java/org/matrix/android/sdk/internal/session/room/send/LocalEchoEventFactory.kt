@@ -423,6 +423,7 @@ internal class LocalEchoEventFactory @Inject constructor(
             }
         }
 
+        //Added for Circles
         val thumbnailInfo = thumbnailExtractor.extractThumbnail(attachment)?.let {
             ThumbnailInfo(
                     width = it.width,
@@ -441,7 +442,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                         size = attachment.size,
                         thumbnailUrl = attachment.queryUri.toString(),
                         thumbnailInfo = thumbnailInfo,
-                        thumbHash = attachment.thumbHash
+                        thumbHash = attachment.thumbHash //Added for Circles
                 ),
                 url = attachment.queryUri.toString(),
                 relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) }
@@ -485,7 +486,7 @@ internal class LocalEchoEventFactory @Inject constructor(
                         // Glide will be able to use the local path and extract a thumbnail.
                         thumbnailUrl = attachment.queryUri.toString(),
                         thumbnailInfo = thumbnailInfo,
-                        thumbHash = attachment.thumbHash
+                        thumbHash = attachment.thumbHash //Added for Circles
                 ),
                 url = attachment.queryUri.toString(),
                 relatesTo = relatesTo ?: rootThreadEventId?.let { generateThreadRelationContent(it) }
@@ -640,7 +641,7 @@ internal class LocalEchoEventFactory @Inject constructor(
         return MessageTextContent(
                 msgType = MessageType.MSGTYPE_TEXT,
                 format = MessageFormat.FORMAT_MATRIX_HTML,
-                body = replyText.toString(),
+                body = replyText.toString(), //Changed for Circles
                 formattedBody = replyFormatted,
                 relatesTo = generateReplyRelationContent(
                         eventId = eventId,
@@ -816,12 +817,12 @@ internal class LocalEchoEventFactory @Inject constructor(
         }
     }
      */
-    fun createRedactEvent(roomId: String, eventId: String, reason: String?, withRelations: List<String>? = null, additionalContent: Content? = null): Event {
+    fun createRedactEvent(roomId: String, eventId: String, reason: String?, withRelTypes: List<String>? = null, additionalContent: Content? = null): Event {
         val localId = LocalEcho.createLocalEchoId()
-        val content = if (reason != null || withRelations != null) {
+        val content = if (reason != null || withRelTypes != null) {
             EventRedactBody(
                     reason = reason,
-                    withRelations = withRelations,
+                    unstableWithRelTypes = withRelTypes,
             ).toContent().plus(additionalContent.orEmpty())
         } else {
             additionalContent

@@ -475,6 +475,7 @@ internal interface RoomAPI {
             @Query("limit") limit: Int? = null,
     ): ThreadSummariesResponse
 
+    //Added for Circles
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "knock/{roomIdOrAlias}")
     suspend fun knock(
             @Path("roomIdOrAlias") roomIdOrAlias: String,

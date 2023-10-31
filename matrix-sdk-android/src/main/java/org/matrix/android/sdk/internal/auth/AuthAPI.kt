@@ -18,7 +18,11 @@ package org.matrix.android.sdk.internal.auth
 
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.util.JsonDict
-import org.matrix.android.sdk.internal.auth.data.*
+import org.matrix.android.sdk.internal.auth.data.Availability
+import org.matrix.android.sdk.internal.auth.data.LoginFlowResponse
+import org.matrix.android.sdk.internal.auth.data.PasswordLoginParams
+import org.matrix.android.sdk.internal.auth.data.TokenLoginParams
+import org.matrix.android.sdk.internal.auth.data.WebClientConfig
 import org.matrix.android.sdk.internal.auth.login.LoginFlowParams
 import org.matrix.android.sdk.internal.auth.login.ResetPasswordMailConfirmed
 import org.matrix.android.sdk.internal.auth.registration.AddThreePidRegistrationParams
@@ -29,7 +33,13 @@ import org.matrix.android.sdk.internal.auth.registration.SuccessResult
 import org.matrix.android.sdk.internal.auth.registration.ValidationCodeBody
 import org.matrix.android.sdk.internal.auth.version.Versions
 import org.matrix.android.sdk.internal.network.NetworkConstants
-import retrofit2.http.*
+import retrofit2.http.Body
+import retrofit2.http.GET
+import retrofit2.http.Headers
+import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.Query
+import retrofit2.http.Url
 
 /**
  * The login REST API.
@@ -90,18 +100,17 @@ internal interface AuthAPI {
      */
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "register/{threePid}/requestToken")
     suspend fun add3Pid(
-        @Path("threePid") threePid: String,
-        @Body params: AddThreePidRegistrationParams
+            @Path("threePid") threePid: String,
+            @Body params: AddThreePidRegistrationParams
     ): AddThreePidRegistrationResponse
 
     /**
      * Validate 3pid.
      */
-    @Headers("Content-Type: application/json")
     @POST
     suspend fun validate3Pid(
-        @Url url: String,
-        @Body params: ValidationCodeBody
+            @Url url: String,
+            @Body params: ValidationCodeBody
     ): SuccessResult
 
     /**
@@ -142,6 +151,7 @@ internal interface AuthAPI {
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/password")
     suspend fun resetPasswordMailConfirmed(@Body params: ResetPasswordMailConfirmed)
 
+    //Added for Circles
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "login")
     suspend fun login(@Body loginFlowParams: LoginFlowParams): Credentials
 }

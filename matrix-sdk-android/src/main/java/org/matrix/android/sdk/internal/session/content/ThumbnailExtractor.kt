@@ -42,22 +42,22 @@ internal class ThumbnailExtractor @Inject constructor(
             val mimeType: String
     )
 
+    //Changed for Circles
     fun extractThumbnail(attachment: ContentAttachmentData): ThumbnailData? {
-        if (attachment.mimeType == MimeTypes.Gif || attachment.mimeType == MimeTypes.Webp) return null
-        return when (attachment.type) {
-            ContentAttachmentData.Type.VIDEO -> extractVideoThumbnail(attachment)
-            ContentAttachmentData.Type.IMAGE -> extractImageThumbnail(attachment)
-            else                             -> null
+        return if (attachment.type == ContentAttachmentData.Type.VIDEO) {
+            extractVideoThumbnail(attachment)
+        } else {
+            null
         }
     }
 
+    //Changed for Circles
     private fun extractVideoThumbnail(attachment: ContentAttachmentData): ThumbnailData? {
         var thumbnailData: ThumbnailData? = null
         val mediaMetadataRetriever = MediaMetadataRetriever()
         try {
             mediaMetadataRetriever.setDataSource(context, attachment.queryUri)
-            val scaledBitmap = mediaMetadataRetriever.frameAtTime?.let { createScaledThumbnailBitmap(it) }
-            scaledBitmap?.let { thumbnail ->
+            mediaMetadataRetriever.frameAtTime?.let { thumbnail ->
                 val outputStream = ByteArrayOutputStream()
                 thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
                 val thumbnailWidth = thumbnail.width
@@ -83,6 +83,7 @@ internal class ThumbnailExtractor @Inject constructor(
         return thumbnailData
     }
 
+    //Added for Circles
     private fun extractImageThumbnail(attachment: ContentAttachmentData): ThumbnailData? {
         var thumbnailData: ThumbnailData? = null
         try {
@@ -113,6 +114,7 @@ internal class ThumbnailExtractor @Inject constructor(
         MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
     }
 
+    //Added for Circles
     private fun createScaledThumbnailBitmap(originalBitmap: Bitmap): Bitmap {
         val maxThumbnailSize = 800
         val originalWidth = originalBitmap.width

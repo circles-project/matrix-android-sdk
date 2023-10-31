@@ -135,8 +135,14 @@ interface SharedSecretStorageService {
 
     fun checkShouldBeAbleToAccessSecrets(secretNames: List<String>, keyId: String?): IntegrityResult
 
+    @Deprecated("Requesting custom secrets not yet support by rust stack, prefer requestMissingSecrets")
     suspend fun requestSecret(name: String, myOtherDeviceId: String)
 
+    /**
+     * Request the missing local secrets to other sessions.
+     */
+    suspend fun requestMissingSecrets()
+    //Added for Circles
     suspend fun generateBCryptKeyWithPassphrase(
             keyId: String,
             passphrase: String,
@@ -145,6 +151,7 @@ interface SharedSecretStorageService {
             userName: String
     ): SsssKeyCreationInfo
 
+    //Added for Circles
     suspend fun generateBsSpekeKeyInfo(
             keyId: String,
             privateKey: ByteArray,
