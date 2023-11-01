@@ -24,6 +24,7 @@ import org.matrix.android.sdk.api.auth.registration.RegisterThreePid
 import org.matrix.android.sdk.api.auth.registration.RegistrationAvailability
 import org.matrix.android.sdk.api.auth.registration.RegistrationResult
 import org.matrix.android.sdk.api.auth.registration.RegistrationWizard
+import org.matrix.android.sdk.api.auth.registration.Stage
 import org.matrix.android.sdk.api.auth.registration.toFlowResult
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.failure.Failure.RegistrationFlowError
@@ -32,6 +33,7 @@ import org.matrix.android.sdk.internal.auth.AuthAPI
 import org.matrix.android.sdk.internal.auth.PendingSessionStore
 import org.matrix.android.sdk.internal.auth.SessionCreator
 import org.matrix.android.sdk.internal.auth.db.PendingSessionData
+import org.matrix.android.sdk.internal.auth.toFlowsWithStages
 
 /**
  * This class execute the registration request and is responsible to keep the session of interactive authentication.
@@ -196,7 +198,8 @@ internal class DefaultRegistrationWizard(
     }
 
     override suspend fun registrationCustom(
-            authParams: JsonDict
+            authParams: JsonDict,
+            initialDeviceDisplayName: String?
     ): RegistrationResult {
         val safeSession = pendingSessionData.currentSession
                 ?: throw IllegalStateException("developer error, call createAccount() method first")
@@ -204,7 +207,7 @@ internal class DefaultRegistrationWizard(
         val mutableParams = authParams.toMutableMap()
         mutableParams["session"] = safeSession
 
-        val params = RegistrationCustomParams(auth = mutableParams)
+        val params = RegistrationCustomParams(auth = mutableParams, initialDeviceDisplayName = initialDeviceDisplayName)
         return performRegistrationOtherRequest(LoginType.CUSTOM, params)
     }
 
@@ -247,5 +250,23 @@ internal class DefaultRegistrationWizard(
 
     override suspend fun registrationAvailable(userName: String): RegistrationAvailability {
         return registerAvailableTask.execute(RegisterAvailableTask.Params(userName))
+    }
+
+    //Added to support few registration flows
+    override suspend fun getAllRegistrationFlows(): List<List<Stage>> {
+        try {
+            registerTask.execute(RegisterTask.Params(RegistrationParams()))
+        } catch (exception: Throwable) {
+            return if (exception is RegistrationFlowError) {
+                pendingSessionData =
+                        pendingSessionData.copy(currentSession = exception.registrationFlowResponse.session)
+                                .also { pendingSessionStore.savePendingSessionData(it) }
+
+                exception.registrationFlowResponse.toFlowsWithStages()
+            } else {
+                emptyList()
+            }
+        }
+        return emptyList()
     }
 }
