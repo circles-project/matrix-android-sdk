@@ -72,4 +72,20 @@ internal class SessionManager @Inject constructor(
                     .create(matrixComponent, sessionParams)
         }
     }
+
+    //Added for switch user
+    suspend fun setActiveSessionAsLast(sessionId: String) {
+        val sessionParams = sessionParamsStore.get(sessionId) ?: return
+        sessionParamsStore.delete(sessionId)
+        sessionParamsStore.save(sessionParams)
+    }
+
+    //Added for switch user
+    fun getAllSessionParams(): List<SessionParams> = sessionParamsStore.getAll()
+
+    //Added for switch user
+    suspend fun removeSession(sessionId: String) {
+        sessionComponents.remove(sessionId)
+        sessionParamsStore.delete(sessionId)
+    }
 }
