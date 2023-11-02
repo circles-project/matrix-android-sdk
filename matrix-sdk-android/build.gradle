@@ -133,7 +133,7 @@ dependencies {
 
 
 //    implementation(name: 'crypto-android-release', ext: 'aar')
-    implementation 'net.java.dev.jna:jna:5.13.0@aar'
+    //implementation 'net.java.dev.jna:jna:5.13.0@aar'
 
  //   implementation libs.androidx.appCompat
     implementation libs.androidx.core
