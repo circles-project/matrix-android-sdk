@@ -36,6 +36,7 @@ publishing {
                 }
                 configurations.api.getDependencies().each { dep -> addDependency(dep, "compile") }
                 configurations.implementation.getDependencies().each { dep -> addDependency(dep, "runtime") }
+                configurations.rustCryptoImplementation.getDependencies().each { dep -> addDependency(dep, "runtime") }
             }
         }
     }
