@@ -30,9 +30,9 @@ import org.matrix.android.sdk.api.session.room.members.MembershipService
 import org.matrix.android.sdk.api.session.room.members.RoomMemberQueryParams
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
-import org.matrix.android.sdk.internal.database.helper.findLatestSessionInfo
+import org.matrix.android.sdk.internal.crypto.store.db.model.CryptoRoomEntity
+import org.matrix.android.sdk.internal.crypto.store.db.query.getById
 import org.matrix.android.sdk.internal.database.mapper.asDomain
-import org.matrix.android.sdk.internal.database.model.ChunkEntity
 import org.matrix.android.sdk.internal.database.model.RoomMemberSummaryEntity
 import org.matrix.android.sdk.internal.database.model.RoomMemberSummaryEntityFields
 import org.matrix.android.sdk.internal.database.model.RoomMembersLoadStatusType
@@ -157,12 +157,11 @@ internal class DefaultMembershipService @AssistedInject constructor(
     }
 
     private suspend fun sendShareHistoryKeysIfNeeded(userId: String) {
-        if (!cryptoService.isShareKeysOnInviteEnabled()) return
-        // TODO not sure it's the right way to get the latest messages in a room
-        val sessionInfo = Realm.getInstance(monarchy.realmConfiguration).use {
-            ChunkEntity.findLatestSessionInfo(it, roomId)
-        }
-        cryptoService.sendSharedHistoryKeys(roomId, userId, sessionInfo)
+        val room = monarchy.fetchCopied {
+            CryptoRoomEntity.getById(it, roomId)
+        } ?: return
+        if (room.shouldEncryptForInvitedMembers == true && room.shouldShareHistory)
+            cryptoService.sendSharedHistoryKeys(roomId, userId, null)
     }
 
     override suspend fun invite3pid(threePid: ThreePid) {
