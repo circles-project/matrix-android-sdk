@@ -1,1 +1,2 @@
 include ':matrix-sdk-android'
+include ':library:rustCrypto'
