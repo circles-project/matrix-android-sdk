@@ -901,6 +901,8 @@ internal class RustCryptoService @Inject constructor(
     override suspend fun prepareToEncrypt(roomId: String) = prepareToEncrypt.invoke(roomId, ensureAllMembersAreLoaded = true)
 
     override suspend fun sendSharedHistoryKeys(roomId: String, userId: String, sessionInfoSet: Set<SessionInfo>?) {
+        val cryptoInfo = cryptoStore.getRoomCryptoInfo(roomId) ?: return
+        if (cryptoInfo.shouldShareHistory.not()) return
         withContext(coroutineDispatchers.crypto) {
             downloadKeysIfNeeded(listOf(userId))
             getUserDevices(userId)
