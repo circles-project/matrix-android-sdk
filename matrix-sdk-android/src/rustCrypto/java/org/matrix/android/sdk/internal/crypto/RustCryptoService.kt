@@ -735,7 +735,7 @@ internal class RustCryptoService @Inject constructor(
         return true
     }
 
-    override fun supportsShareKeysOnInvite() = false
+    override fun supportsShareKeysOnInvite() = true
 
     override fun supportsKeyWithheld() = true
     override fun supportsForwardedKeyWiththeld() = false
@@ -746,7 +746,7 @@ internal class RustCryptoService @Inject constructor(
         }
     }
 
-    override fun isShareKeysOnInviteEnabled() = false
+    override fun isShareKeysOnInviteEnabled() = true
 
     override fun setRoomUnBlockUnverifiedDevices(roomId: String) {
         cryptoStore.blockUnverifiedDevicesInRoom(roomId, false)
@@ -845,9 +845,9 @@ internal class RustCryptoService @Inject constructor(
     override fun removeSessionListener(listener: NewSessionListener) {
         megolmSessionImportManager.removeListener(listener)
     }
-/* ==========================================================================================
- * DEBUG INFO
- * ========================================================================================== */
+    /* ==========================================================================================
+     * DEBUG INFO
+     * ========================================================================================== */
 
     override fun toString(): String {
         return "DefaultCryptoService of $myUserId ($deviceId)"
@@ -901,7 +901,17 @@ internal class RustCryptoService @Inject constructor(
     override suspend fun prepareToEncrypt(roomId: String) = prepareToEncrypt.invoke(roomId, ensureAllMembersAreLoaded = true)
 
     override suspend fun sendSharedHistoryKeys(roomId: String, userId: String, sessionInfoSet: Set<SessionInfo>?) {
-        // TODO("Not yet implemented")
+        val cryptoInfo = cryptoStore.getRoomCryptoInfo(roomId) ?: return
+        if (cryptoInfo.shouldShareHistory.not()) return
+        withContext(coroutineDispatchers.crypto) {
+            downloadKeysIfNeeded(listOf(userId))
+            getUserDevices(userId)
+            with(olmMachine) {
+                inner().shareRoomHistoryKeys(roomId, listOf(userId))
+                updateTrackedUsers(listOf(userId))
+                outgoingRequestsProcessor.processOutgoingRequests(olmMachine)
+            }
+        }
     }
 
     companion object {

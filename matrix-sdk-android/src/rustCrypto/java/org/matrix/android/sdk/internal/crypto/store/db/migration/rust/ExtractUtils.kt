@@ -100,7 +100,7 @@ fun RealmToMigrate.getPickledAccount(pickleKey: ByteArray): MigrationData {
             )
             MigrationData(
                     account = pickledAccount,
-                    pickleKey = pickleKey.map { it.toUByte() },
+                    pickleKey = pickleKey,
                     crossSigning = CrossSigningKeyExport(
                             masterKey = masterKey,
                             selfSigningKey = selfSignedKey,
@@ -153,7 +153,7 @@ fun RealmToMigrate.getPickledAccount(pickleKey: ByteArray): MigrationData {
 
                 migrationData = MigrationData(
                         account = pickledAccount,
-                        pickleKey = pickleKey.map { it.toUByte() },
+                        pickleKey = pickleKey,
                         crossSigning = CrossSigningKeyExport(
                                 masterKey = masterKey,
                                 selfSigningKey = selfSignedKey,

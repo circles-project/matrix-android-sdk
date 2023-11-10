@@ -277,7 +277,7 @@ internal class OlmMachine @Inject constructor(
             val events = adapter.toJson(toDevice ?: ToDeviceSyncResponse())
 
             // field pass in the list of unused fallback keys here
-            val receiveSyncChanges = inner.receiveSyncChanges(events, devices, counts, deviceUnusedFallbackKeyTypes)
+            val receiveSyncChanges = inner.receiveSyncChanges(events, devices, counts, deviceUnusedFallbackKeyTypes,"").toDeviceEvents.toString()
 
             val outAdapter = moshi.adapter<List<Event>>(
                     Types.newParameterizedType(
