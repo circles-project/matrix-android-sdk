@@ -54,12 +54,13 @@ internal class DefaultRegistrationWizard(
 
     override fun getCurrentThreePid(): String? {
         return when (val threePid = pendingSessionData.currentThreePidData?.threePid) {
-            is RegisterThreePid.Email -> threePid.email
+            is RegisterThreePid.Email  -> threePid.email
             is RegisterThreePid.Msisdn -> {
                 // Take formatted msisdn if provided by the server
                 pendingSessionData.currentThreePidData?.addThreePidRegistrationResponse?.formattedMsisdn?.takeIf { it.isNotBlank() } ?: threePid.msisdn
             }
-            null -> null
+
+            null                       -> null
         }
     }
 
@@ -199,7 +200,8 @@ internal class DefaultRegistrationWizard(
 
     override suspend fun registrationCustom(
             authParams: JsonDict,
-            initialDeviceDisplayName: String?
+            initialDeviceDisplayName: String?,
+            useRefreshToken: Boolean
     ): RegistrationResult {
         val safeSession = pendingSessionData.currentSession
                 ?: throw IllegalStateException("developer error, call createAccount() method first")
@@ -207,7 +209,7 @@ internal class DefaultRegistrationWizard(
         val mutableParams = authParams.toMutableMap()
         mutableParams["session"] = safeSession
 
-        val params = RegistrationCustomParams(auth = mutableParams, initialDeviceDisplayName = initialDeviceDisplayName)
+        val params = RegistrationCustomParams(auth = mutableParams, initialDeviceDisplayName = initialDeviceDisplayName, refreshToken = useRefreshToken)
         return performRegistrationOtherRequest(LoginType.CUSTOM, params)
     }
 

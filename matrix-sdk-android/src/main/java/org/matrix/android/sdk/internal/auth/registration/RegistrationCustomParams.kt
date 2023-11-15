@@ -31,5 +31,8 @@ internal data class RegistrationCustomParams(
 
         // device name
         @Json(name = "initial_device_display_name")
-        val initialDeviceDisplayName: String? = null
+        val initialDeviceDisplayName: String? = null,
+
+        @Json(name = "refresh_token")
+        val refreshToken: Boolean = false
 )
