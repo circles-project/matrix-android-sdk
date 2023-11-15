@@ -88,5 +88,5 @@ interface LoginWizard {
      * Current login "session" param will be included into authParams by default.
      * The authParams should contain at least one entry "type" with a String value.
      */
-    suspend fun loginStageCustom(authParams: JsonDict, identifierParams: JsonDict? = null, initialDeviceName: String? = null): RegistrationResult
+    suspend fun loginStageCustom(authParams: JsonDict, identifierParams: JsonDict? = null, initialDeviceName: String? = null, useRefreshToken: Boolean = false): RegistrationResult
 }

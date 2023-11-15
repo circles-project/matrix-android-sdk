@@ -17,6 +17,7 @@
 package org.matrix.android.sdk.internal.auth.login
 
 import android.util.Patterns
+import com.otaliastudios.opengl.core.use
 import org.matrix.android.sdk.api.auth.LoginType
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.auth.login.LoginProfileInfo
@@ -175,7 +176,8 @@ internal class DefaultLoginWizard(
     override suspend fun loginStageCustom(
             authParams: JsonDict,
             identifierParams: JsonDict?,
-            initialDeviceName: String?
+            initialDeviceName: String?,
+            useRefreshToken: Boolean
     ): RegistrationResult {
         val safeSession = pendingSessionData.currentSession
                 ?: throw IllegalStateException("developer error, call createAccount() method first")
@@ -183,7 +185,7 @@ internal class DefaultLoginWizard(
         val mutableParams = authParams.toMutableMap()
         mutableParams["session"] = safeSession
 
-        val params = LoginFlowParams(auth = mutableParams, identifier = identifierParams, initialDeviceDisplayName = initialDeviceName)
+        val params = LoginFlowParams(auth = mutableParams, identifier = identifierParams, initialDeviceDisplayName = initialDeviceName, refreshToken = useRefreshToken)
         return performLoginRequest(LoginType.CUSTOM, params)
     }
 
