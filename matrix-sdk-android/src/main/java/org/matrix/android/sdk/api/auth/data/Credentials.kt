@@ -55,7 +55,10 @@ data class Credentials(
          * reconfigure themselves, optionally validating the URLs within.
          * This object takes the same form as the one returned from .well-known autodiscovery.
          */
-        @Json(name = "well_known") val discoveryInformation: DiscoveryInformation? = null
+        @Json(name = "well_known") val discoveryInformation: DiscoveryInformation? = null,
+
+        // Added for Circles
+        @Json(name = "expires_in_ms") val expiresInMs: Long? = null
 )
 
 //Changed for Circles
