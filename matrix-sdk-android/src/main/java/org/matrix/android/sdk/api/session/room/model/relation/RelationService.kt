@@ -103,7 +103,7 @@ interface RelationService {
             newBodyText: CharSequence,
             newFormattedBodyText: CharSequence? = null,
             newBodyAutoMarkdown: Boolean,
-            compatibilityBodyText: String = "* $newBodyText"
+            compatibilityBodyText: String = newBodyText.toString()
     ): Cancelable
 
     /**
@@ -121,7 +121,7 @@ interface RelationService {
             originalTimelineEvent: TimelineEvent,
             newBodyText: String,
             newFormattedBodyText: String? = null,
-            compatibilityBodyText: String = "* $newBodyText"
+            compatibilityBodyText: String = newBodyText
     ): Cancelable
 
     /**
