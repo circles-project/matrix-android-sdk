@@ -24,6 +24,7 @@ import org.matrix.android.sdk.api.auth.login.LoginWizard
 import org.matrix.android.sdk.api.auth.registration.RegistrationWizard
 import org.matrix.android.sdk.api.auth.wellknown.WellknownResult
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.internal.auth.login.RefreshedTokenInfo
 
 /**
  * This interface defines methods to authenticate or to create an account to a matrix server.
@@ -165,4 +166,9 @@ interface AuthenticationService {
      * Added for switch user
      */
     suspend fun removeSession(sessionId: String)
+
+    /**
+     * Added for Circles
+     */
+    suspend fun refreshToken(sessionId: String): RefreshedTokenInfo
 }
