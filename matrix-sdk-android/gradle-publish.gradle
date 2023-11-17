@@ -3,7 +3,7 @@ apply plugin: 'maven-publish'
 
 def groupIdString = "org.matrix.android"
 def artifactIdString = "matrix-sdk-android-rustCrypto"
-def versionName = "1.5.30.29"
+def versionName = "1.5.30.30"
 def artifactPath = "$buildDir/outputs/aar/$artifactIdString-release.aar"
 def publicationName = "release"
 def projectId = "16"
