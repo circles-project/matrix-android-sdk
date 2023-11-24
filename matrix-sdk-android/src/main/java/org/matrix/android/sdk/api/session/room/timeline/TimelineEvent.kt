@@ -35,12 +35,14 @@ import org.matrix.android.sdk.api.session.room.model.ReadReceipt
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconInfoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageBeaconLocationDataContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageContent.Companion.MSG_TYPE_JSON_KEY
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageEndPollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
+import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.util.ContentUtils
@@ -158,9 +160,13 @@ fun TimelineEvent.getLastMessageContent(): MessageContent? {
     }
 }
 
-//Changed for Circles
+//Changed for Circles to support edits without m.new_content
 fun TimelineEvent.getLastEditNewContent(): Content? {
-    val lastContent = annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessageContent>()?.newContent
+    val model = annotations?.editSummary?.latestEdit?.getClearContent()?.toModel<MessageContent>() ?: return null
+    val lastContent = model.newContent ?: mapOf(
+            MSG_TYPE_JSON_KEY to MessageType.MSGTYPE_TEXT,
+            "body" to model.body
+    )
     return if (isReply()) {
         val previousFormattedBody = root.getClearContent().toModel<MessageTextContent>()?.formattedBody
         if (previousFormattedBody?.isNotEmpty() == true) {
