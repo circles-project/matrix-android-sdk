@@ -51,6 +51,8 @@ internal class EventEditValidator @Inject constructor(val cryptoStore: IMXCommon
      *
      * If the original event was encrypted, the replacement should be too.
      */
+
+    // Removed m.new_content validation for Circles
     fun validateEdit(originalEvent: Event?, replaceEvent: Event): EditValidity {
         // we might not know the original event at that time. In this case we can't perform the validation
         // Edits should be revalidated when the original event is received
@@ -98,9 +100,9 @@ internal class EventEditValidator @Inject constructor(val cryptoStore: IMXCommon
             if (originalDecrypted.type != replaceDecrypted.type) {
                 return EditValidity.Invalid("replacement and original events must have the same type")
             }
-            if (!hasNewContent(replaceDecrypted.type, replaceDecrypted.clearContent)) {
-                return EditValidity.Invalid("replacement event must have an m.new_content property")
-            }
+//            if (!hasNewContent(replaceDecrypted.type, replaceDecrypted.clearContent)) {
+//                return EditValidity.Invalid("replacement event must have an m.new_content property")
+//            }
         } else {
             if (originalEvent.getRelationContent()?.type == RelationType.REPLACE) {
                 return EditValidity.Invalid("The original event must not, itself, have a rel_type of m.replace ")
@@ -113,9 +115,9 @@ internal class EventEditValidator @Inject constructor(val cryptoStore: IMXCommon
             if (originalEvent.type != replaceEvent.type) {
                 return EditValidity.Invalid("replacement and original events must have the same type")
             }
-            if (!hasNewContent(replaceEvent.type, replaceEvent.content)) {
-                return EditValidity.Invalid("replacement event must have an m.new_content property")
-            }
+//            if (!hasNewContent(replaceEvent.type, replaceEvent.content)) {
+//                return EditValidity.Invalid("replacement event must have an m.new_content property")
+//            }
         }
 
         return EditValidity.Valid
