@@ -44,10 +44,11 @@ internal class ThumbnailExtractor @Inject constructor(
 
     //Changed for Circles
     fun extractThumbnail(attachment: ContentAttachmentData): ThumbnailData? {
-        return if (attachment.type == ContentAttachmentData.Type.VIDEO) {
-            extractVideoThumbnail(attachment)
-        } else {
-            null
+        if (attachment.mimeType == MimeTypes.Gif || attachment.mimeType == MimeTypes.Webp) return null
+        return when (attachment.type) {
+            ContentAttachmentData.Type.VIDEO -> extractVideoThumbnail(attachment)
+            ContentAttachmentData.Type.IMAGE -> extractImageThumbnail(attachment)
+            else                             -> null
         }
     }
 
