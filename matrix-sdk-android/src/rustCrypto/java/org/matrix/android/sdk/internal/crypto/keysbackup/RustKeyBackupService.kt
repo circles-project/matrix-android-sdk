@@ -28,9 +28,10 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.matrix.android.sdk.api.MatrixCallback
 import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
+import org.matrix.android.sdk.api.crypto.BCRYPT_ALGORITHM_BACKUP
+import org.matrix.android.sdk.api.crypto.BSSPEKE_ALGORITHM_BACKUP
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM_BACKUP
 import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
@@ -68,7 +69,6 @@ import org.matrix.android.sdk.internal.di.MoshiProvider
 import org.matrix.android.sdk.internal.session.SessionScope
 import org.matrix.android.sdk.internal.util.JsonCanonicalizer
 import org.matrix.olm.OlmException
-import org.matrix.olm.OlmPkDecryption
 import org.matrix.rustcomponents.sdk.crypto.Request
 import org.matrix.rustcomponents.sdk.crypto.RequestType
 import org.matrix.rustcomponents.sdk.crypto.SignatureState
@@ -161,7 +161,7 @@ internal class RustKeyBackupService @Inject constructor(
         }
     }
 
-    override suspend fun prepareKeysBackupVersion(key: ByteArray, progressListener: ProgressListener?):MegolmBackupCreationInfo {
+    override suspend fun prepareKeysBackupVersion(key: ByteArray, progressListener: ProgressListener?): MegolmBackupCreationInfo {
         return withContext(coroutineDispatchers.computation) {
             val recoveryKey = BackupRecoveryKey.fromBase64(key.toBase64NoPadding())
             val publicKey = recoveryKey.megolmV1PublicKey()
@@ -850,7 +850,12 @@ internal class RustKeyBackupService @Inject constructor(
      */
     private fun getMegolmBackupAuthData(keysBackupData: KeysVersionResult): MegolmBackupAuthData? {
         return keysBackupData
-                .takeIf { it.version.isNotEmpty() && it.algorithm == MXCRYPTO_ALGORITHM_MEGOLM_BACKUP }
+                .takeIf {
+                    it.version.isNotEmpty() &&
+                            (it.algorithm == MXCRYPTO_ALGORITHM_MEGOLM_BACKUP
+                                    || it.algorithm == BCRYPT_ALGORITHM_BACKUP
+                                    || it.algorithm == BSSPEKE_ALGORITHM_BACKUP)
+                }
                 ?.getAuthDataAsMegolmBackupAuthData()
                 ?.takeIf { it.publicKey.isNotEmpty() }
     }
