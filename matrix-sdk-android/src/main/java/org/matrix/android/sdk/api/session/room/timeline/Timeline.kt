@@ -102,7 +102,8 @@ interface Timeline {
         /**
          * Called whenever an error we can't recover from occurred.
          */
-        fun onTimelineFailure(throwable: Throwable) = Unit
+        // Added timelineId for circles
+        fun onTimelineFailure(timelineId: String, throwable: Throwable) = Unit
 
         /**
          * Called when new events come through the sync.

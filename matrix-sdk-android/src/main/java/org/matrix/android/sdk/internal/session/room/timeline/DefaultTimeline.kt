@@ -273,8 +273,8 @@ internal class DefaultTimeline(
 
         strategy = when {
             rootThreadEventId != null -> buildStrategy(LoadTimelineStrategy.Mode.Thread(rootThreadEventId))
-            eventId == null -> buildStrategy(LoadTimelineStrategy.Mode.Live)
-            else -> buildStrategy(LoadTimelineStrategy.Mode.Permalink(eventId))
+            eventId == null           -> buildStrategy(LoadTimelineStrategy.Mode.Live)
+            else                      -> buildStrategy(LoadTimelineStrategy.Mode.Permalink(eventId))
         }
 
         rootThreadEventId?.let {
@@ -361,7 +361,7 @@ internal class DefaultTimeline(
 
     private fun updateState(direction: Timeline.Direction, update: (Timeline.PaginationState) -> Timeline.PaginationState) {
         val stateReference = when (direction) {
-            Timeline.Direction.FORWARDS -> forwardState
+            Timeline.Direction.FORWARDS  -> forwardState
             Timeline.Direction.BACKWARDS -> backwardState
         }
         val currentValue = stateReference.get()
@@ -384,7 +384,7 @@ internal class DefaultTimeline(
     private fun onTimelineFailure(throwable: Throwable) {
         timelineScope.launch(coroutineDispatchers.main) {
             listeners.forEach {
-                tryOrNull { it.onTimelineFailure(throwable) }
+                tryOrNull { it.onTimelineFailure(timelineID, throwable) }
             }
         }
     }
