@@ -39,4 +39,8 @@ internal interface MediaAPI {
      */
     @GET(NetworkConstants.URI_API_MEDIA_PREFIX_PATH_R0 + "preview_url")
     suspend fun getPreviewUrlData(@Query("url") url: String, @Query("ts") ts: Long?): JsonDict
+
+    //Created for Circles
+    @GET("_matrix/media/unstable/org.matrix.msc4034/" + "usage")
+    suspend fun getMediaUsage(): GetMediaUsageResult
 }

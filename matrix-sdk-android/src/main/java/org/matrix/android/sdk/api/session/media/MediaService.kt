@@ -19,6 +19,7 @@ package org.matrix.android.sdk.api.session.media
 import org.matrix.android.sdk.api.cache.CacheStrategy
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
 import org.matrix.android.sdk.api.util.JsonDict
+import org.matrix.android.sdk.internal.session.media.MediaUsageInfo
 
 interface MediaService {
     /**
@@ -48,4 +49,7 @@ interface MediaService {
      * Clear the cache of all retrieved UrlPreview data.
      */
     suspend fun clearCache()
+
+    //Added for Circles
+    suspend fun getMediaUsage(): MediaUsageInfo?
 }

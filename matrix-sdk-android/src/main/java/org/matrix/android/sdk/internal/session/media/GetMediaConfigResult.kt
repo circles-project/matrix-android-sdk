@@ -26,5 +26,9 @@ internal data class GetMediaConfigResult(
          * If not listed or null, the size limit should be treated as unknown.
          */
         @Json(name = "m.upload.size")
-        val maxUploadSize: Long? = null
+        val maxUploadSize: Long? = null,
+
+        //Added for Circles
+        @Json(name = "org.matrix.msc4034.storage.size")
+        val storageSize: Long? = null
 )

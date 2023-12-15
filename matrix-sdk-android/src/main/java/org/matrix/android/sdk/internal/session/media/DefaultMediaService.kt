@@ -30,7 +30,8 @@ internal class DefaultMediaService @Inject constructor(
         private val clearPreviewUrlCacheTask: ClearPreviewUrlCacheTask,
         private val getPreviewUrlTask: GetPreviewUrlTask,
         private val getRawPreviewUrlTask: GetRawPreviewUrlTask,
-        private val urlsExtractor: UrlsExtractor
+        private val urlsExtractor: UrlsExtractor,
+        private val getMediaUsageTask: GetMediaUsageTask
 ) : MediaService {
     // Cache of extracted URLs
     private val extractedUrlsCache = LruCache<String, List<String>>(1_000)
@@ -48,6 +49,11 @@ internal class DefaultMediaService @Inject constructor(
 
     override suspend fun getPreviewUrl(url: String, timestamp: Long?, cacheStrategy: CacheStrategy): PreviewUrlData {
         return getPreviewUrlTask.execute(GetPreviewUrlTask.Params(url, timestamp, cacheStrategy))
+    }
+
+    //Added for Circles
+    override suspend fun getMediaUsage(): MediaUsageInfo? {
+        return getMediaUsageTask.execute(Unit)
     }
 
     override suspend fun clearCache() {
