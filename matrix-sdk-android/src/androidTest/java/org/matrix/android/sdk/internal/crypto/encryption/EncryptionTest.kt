@@ -88,7 +88,7 @@ class EncryptionTest : InstrumentedTest {
 private suspend fun Timeline.waitForEncryptedMessages() {
     suspendCancellableCoroutine<Unit> { continuation ->
         val timelineListener = object : Timeline.Listener {
-            override fun onTimelineFailure(throwable: Throwable) {
+            override fun onTimelineFailure(timelineId: String, throwable: Throwable) {
             }
 
             override fun onNewTimelineEvents(eventIds: List<String>) {
