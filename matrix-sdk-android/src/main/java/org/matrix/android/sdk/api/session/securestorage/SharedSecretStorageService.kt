@@ -142,6 +142,7 @@ interface SharedSecretStorageService {
      * Request the missing local secrets to other sessions.
      */
     suspend fun requestMissingSecrets()
+
     //Added for Circles
     suspend fun generateBCryptKeyWithPassphrase(
             keyId: String,

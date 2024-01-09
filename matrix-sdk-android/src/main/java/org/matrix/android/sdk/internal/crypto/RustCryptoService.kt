@@ -55,6 +55,7 @@ import org.matrix.android.sdk.api.session.crypto.model.MXUsersDevicesMap
 import org.matrix.android.sdk.api.session.events.model.Content
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.events.model.EventType
+import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.content.EncryptionEventContent
 import org.matrix.android.sdk.api.session.events.model.content.RoomKeyContent
 import org.matrix.android.sdk.api.session.events.model.content.RoomKeyWithHeldContent
@@ -134,6 +135,7 @@ internal class RustCryptoService @Inject constructor(
         private val getRoomUserIds: GetRoomUserIdsUseCase,
         private val outgoingRequestsProcessor: OutgoingRequestsProcessor,
         private val matrixConfiguration: MatrixConfiguration,
+        private val perSessionBackupQueryRateLimiter: PerSessionBackupQueryRateLimiter,
 ) : CryptoService {
 
     private val isStarting = AtomicBoolean(false)
@@ -225,7 +227,7 @@ internal class RustCryptoService @Inject constructor(
     }
 
     /**
-     * Tell if the MXCrypto is started
+     * Tell if the MXCrypto is started.
      *
      * @return true if the crypto is started
      */
@@ -288,7 +290,7 @@ internal class RustCryptoService @Inject constructor(
     }
 
     /**
-     * Close the crypto
+     * Close the crypto.
      */
     override fun close() {
         cryptoCoroutineScope.coroutineContext.cancelChildren(CancellationException("Closing crypto module"))
@@ -315,7 +317,7 @@ internal class RustCryptoService @Inject constructor(
     override fun crossSigningService() = crossSigningService
 
     /**
-     * A sync response has been received
+     * A sync response has been received.
      */
     override suspend fun onSyncCompleted(syncResponse: SyncResponse, cryptoStoreAggregator: CryptoStoreAggregator) {
         if (isStarted()) {
@@ -335,9 +337,9 @@ internal class RustCryptoService @Inject constructor(
     }
 
     /**
-     * Provides the device information for a user id and a device Id
+     * Provides the device information for a user id and a device Id.
      *
-     * @param userId   the user id
+     * @param userId the user id
      * @param deviceId the device id
      */
     override suspend fun getCryptoDeviceInfo(userId: String, deviceId: String?): CryptoDeviceInfo? {
@@ -386,9 +388,9 @@ internal class RustCryptoService @Inject constructor(
     /**
      * Configure a room to use encryption.
      *
-     * @param roomId             the room id to enable encryption in.
-     * @param algorithm          the encryption config for the room.
-     * @param membersId          list of members to start tracking their devices
+     * @param roomId the room id to enable encryption in.
+     * @param info the encryption config for the room.
+     * @param membersId list of members to start tracking their devices
      * @return true if the operation succeeds.
      */
     private suspend fun setEncryptionInRoom(
@@ -430,7 +432,7 @@ internal class RustCryptoService @Inject constructor(
     }
 
     /**
-     * Tells if a room is encrypted with MXCRYPTO_ALGORITHM_MEGOLM
+     * Tells if a room is encrypted with MXCRYPTO_ALGORITHM_MEGOLM.
      *
      * @param roomId the room id
      * @return true if the room is encrypted with algorithm MXCRYPTO_ALGORITHM_MEGOLM
@@ -470,8 +472,8 @@ internal class RustCryptoService @Inject constructor(
      * Encrypt an event content according to the configuration of the room.
      *
      * @param eventContent the content of the event.
-     * @param eventType    the type of the event.
-     * @param roomId       the room identifier the event will be sent.
+     * @param eventType the type of the event.
+     * @param roomId the room identifier the event will be sent.
      */
     override suspend fun encryptEventContent(
             eventContent: Content,
@@ -486,20 +488,46 @@ internal class RustCryptoService @Inject constructor(
     }
 
     /**
-     * Decrypt an event
+     * Decrypt an event.
      *
-     * @param event    the raw event.
+     * @param event the raw event.
      * @param timeline the id of the timeline where the event is decrypted. It is used to prevent replay attack.
      * @return the MXEventDecryptionResult data, or throw in case of error
      */
     @Throws(MXCryptoError::class)
     override suspend fun decryptEvent(event: Event, timeline: String): MXEventDecryptionResult {
-        return olmMachine.decryptRoomEvent(event)
+        return try {
+            olmMachine.decryptRoomEvent(event)
+        } catch (mxCryptoError: MXCryptoError) {
+            if (mxCryptoError is MXCryptoError.Base && (
+                            mxCryptoError.errorType == MXCryptoError.ErrorType.UNKNOWN_INBOUND_SESSION_ID ||
+                                    mxCryptoError.errorType == MXCryptoError.ErrorType.UNKNOWN_MESSAGE_INDEX)) {
+                Timber.v("Try to perform a lazy migration from legacy store")
+                /**
+                 * It's a bit hacky, check how this can be better integrated with rust?
+                 */
+                val content = event.content?.toModel<EncryptedEventContent>() ?: throw mxCryptoError
+                val roomId = event.roomId
+                val sessionId = content.sessionId
+                val senderKey = content.senderKey
+                if (roomId != null && sessionId != null) {
+                    // try to perform a lazy migration from legacy store
+                    val legacy = tryOrNull("Failed to access legacy crypto store") {
+                        cryptoStore.getInboundGroupSession(sessionId, senderKey.orEmpty())
+                    }
+                    if (legacy == null || olmMachine.importRoomKey(legacy).isFailure) {
+                        perSessionBackupQueryRateLimiter.tryFromBackupIfPossible(sessionId, roomId)
+                    }
+                }
+            }
+            throw mxCryptoError
+        }
     }
 
     /**
      * Handle an m.room.encryption event.
      *
+     * @param roomId the roomId.
      * @param event the encryption event.
      */
     private suspend fun onRoomEncryptionEvent(roomId: String, event: Event) {
@@ -544,6 +572,7 @@ internal class RustCryptoService @Inject constructor(
     /**
      * Handle a change in the membership state of a member of a room.
      *
+     * @param roomId the roomId
      * @param event the membership event causing the change
      */
     private suspend fun onRoomMembershipEvent(roomId: String, event: Event) {
@@ -616,13 +645,15 @@ internal class RustCryptoService @Inject constructor(
             deviceChanges: DeviceListResponse?,
             keyCounts: DeviceOneTimeKeysCountSyncResponse?,
             deviceUnusedFallbackKeyTypes: List<String>?,
+            nextBatch: String?,
     ) {
         // Decrypt and handle our to-device events
-        val toDeviceEvents = this.olmMachine.receiveSyncChanges(toDevice, deviceChanges, keyCounts, deviceUnusedFallbackKeyTypes)
+        val toDeviceEvents = this.olmMachine.receiveSyncChanges(toDevice, deviceChanges, keyCounts, deviceUnusedFallbackKeyTypes, nextBatch)
 
         // Notify the our listeners about room keys so decryption is retried.
         toDeviceEvents.events.orEmpty().forEach { event ->
-            Timber.tag(loggerTag.value).d("[${myUserId.take(7)}|${deviceId}] Processed ToDevice event msgid:${event.toDeviceTracingId()} id:${event.eventId} type:${event.type}")
+            Timber.tag(loggerTag.value)
+                    .d("[${myUserId.take(7)}|${deviceId}] Processed ToDevice event msgid:${event.toDeviceTracingId()} id:${event.eventId} type:${event.type}")
 
             if (event.getClearType() == EventType.ENCRYPTED) {
                 // rust failed to decrypt it
@@ -664,7 +695,7 @@ internal class RustCryptoService @Inject constructor(
     }
 
     /**
-     * Export the crypto keys
+     * Export the crypto keys.
      *
      * @param password the password
      * @return the exported keys
@@ -679,10 +710,10 @@ internal class RustCryptoService @Inject constructor(
     }
 
     /**
-     * Import the room keys
+     * Import the room keys.
      *
-     * @param roomKeysAsArray  the room keys as array.
-     * @param password         the password
+     * @param roomKeysAsArray the room keys as array.
+     * @param password the password
      * @param progressListener the progress listener
      * @return the result ImportRoomKeysResult
      */
@@ -715,7 +746,7 @@ internal class RustCryptoService @Inject constructor(
      * If false, it can still be overridden per-room.
      * If true, it overrides the per-room settings.
      *
-     * @param block    true to unilaterally blacklist all
+     * @param block true to unilaterally blacklist all
      */
     override fun setGlobalBlacklistUnverifiedDevices(block: Boolean) {
         cryptoStore.setGlobalBlacklistUnverifiedDevices(block)
@@ -785,26 +816,6 @@ internal class RustCryptoService @Inject constructor(
         return cryptoStore.getLiveBlockUnverifiedDevices(roomId)
     }
 
-//    /**
-//     * Manages the room black-listing for unverified devices.
-//     *
-//     * @param roomId   the room id
-//     * @param add      true to add the room id to the list, false to remove it.
-//     */
-//    private fun setRoomBlacklistUnverifiedDevices(roomId: String, add: Boolean) {
-//        val roomIds = cryptoStore.getRoomsListBlacklistUnverifiedDevices().toMutableList()
-//
-//        if (add) {
-//            if (roomId !in roomIds) {
-//                roomIds.add(roomId)
-//            }
-//        } else {
-//            roomIds.remove(roomId)
-//        }
-//
-//        cryptoStore.setRoomsListBlacklistUnverifiedDevices(roomIds)
-//    }
-
     /**
      * Re request the encryption keys required to decrypt an event.
      *
@@ -845,9 +856,9 @@ internal class RustCryptoService @Inject constructor(
     override fun removeSessionListener(listener: NewSessionListener) {
         megolmSessionImportManager.removeListener(listener)
     }
-    /* ==========================================================================================
-     * DEBUG INFO
-     * ========================================================================================== */
+/* ==========================================================================================
+ * DEBUG INFO
+ * ========================================================================================== */
 
     override fun toString(): String {
         return "DefaultCryptoService of $myUserId ($deviceId)"

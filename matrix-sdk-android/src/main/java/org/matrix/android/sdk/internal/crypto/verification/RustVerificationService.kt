@@ -40,14 +40,16 @@ import org.matrix.rustcomponents.sdk.crypto.VerificationRequestState
 import timber.log.Timber
 import javax.inject.Inject
 
-/** A helper class to deserialize to-device `m.key.verification.*` events to fetch the transaction id out */
+/**
+ * A helper class to deserialize to-device `m.key.verification.*` events to fetch the transaction id out.
+ */
 @JsonClass(generateAdapter = true)
 internal data class ToDeviceVerificationEvent(
         @Json(name = "sender") val sender: String?,
         @Json(name = "transaction_id") val transactionId: String
 )
 
-/** Helper method to fetch the unique ID of the verification event */
+/** Helper method to fetch the unique ID of the verification event. */
 private fun getFlowId(event: Event): String? {
     return if (event.eventId != null) {
         event.getRelationContent()?.eventId
@@ -57,7 +59,7 @@ private fun getFlowId(event: Event): String? {
     }
 }
 
-/** Convert a list of VerificationMethod into a list of strings that can be passed to the Rust side */
+/** Convert a list of VerificationMethod into a list of strings that can be passed to the Rust side. */
 internal fun prepareMethods(methods: List<VerificationMethod>): List<String> {
     val stringMethods: MutableList<String> = methods.map { it.toValue() }.toMutableList()
 
@@ -132,7 +134,7 @@ internal class RustVerificationService @Inject constructor(
         }
     }
 
-    /** Dispatch updates after a verification event has been received */
+    /** Dispatch updates after a verification event has been received. */
     private suspend fun onUpdate(event: Event) {
         Timber.v("[${olmMachine.userId().take(6)}] Verification on event ${event.getClearType()}")
         val sender = event.senderId ?: return
@@ -147,7 +149,7 @@ internal class RustVerificationService @Inject constructor(
         }
     }
 
-    /** Check if the start event created new verification objects and dispatch updates */
+    /** Check if the start event created new verification objects and dispatch updates. */
     private suspend fun onStart(event: Event) {
         if (event.unsignedData?.transactionId != null) return // remote echo
         val sender = event.senderId ?: return
@@ -186,7 +188,7 @@ internal class RustVerificationService @Inject constructor(
         }
     }
 
-    /** Check if the request event created a nev verification request object and dispatch that it dis so */
+    /** Check if the request event created a nev verification request object and dispatch that it dis so. */
     private suspend fun onRequest(event: Event, fromRoomMessage: Boolean) {
         val flowId = if (fromRoomMessage) {
             event.eventId
@@ -318,7 +320,7 @@ internal class RustVerificationService @Inject constructor(
     override suspend fun startKeyVerification(method: VerificationMethod, otherUserId: String, requestId: String): String? {
         return if (method == VerificationMethod.SAS) {
             val request = olmMachine.getVerificationRequest(otherUserId, requestId)
-                    ?: throw IllegalArgumentException("Unknown request with id: $requestId")
+                    ?: throw UnsupportedOperationException("Unknown request with id: $requestId")
 
             val sas = request.startSasVerification()
 
@@ -333,7 +335,7 @@ internal class RustVerificationService @Inject constructor(
                 null
             }
         } else {
-            throw IllegalArgumentException("Unknown verification method")
+            throw UnsupportedOperationException("Unknown verification method")
         }
     }
 

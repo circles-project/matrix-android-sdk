@@ -24,6 +24,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM
+import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.logger.LoggerTag
 import org.matrix.android.sdk.api.session.crypto.MXCryptoError
 import org.matrix.android.sdk.internal.crypto.keysbackup.RustKeyBackupService
@@ -79,7 +80,7 @@ internal class PrepareToEncryptUseCase @Inject constructor(
             if (algorithm == null) {
                 val reason = String.format(MXCryptoError.UNABLE_TO_ENCRYPT_REASON, MXCryptoError.NO_MORE_ALGORITHM_REASON)
                 Timber.tag(loggerTag.value).e("prepareToEncrypt() : $reason")
-                throw IllegalArgumentException("Missing algorithm")
+                throw Failure.CryptoError(MXCryptoError.Base(MXCryptoError.ErrorType.UNABLE_TO_ENCRYPT, reason))
             }
             preshareRoomKey(roomId, userIds, forceDistributeToUnverified)
         }
@@ -99,10 +100,10 @@ internal class PrepareToEncryptUseCase @Inject constructor(
         var sharedKey = false
 
         val info = cryptoStore.getRoomCryptoInfo(roomId)
-                ?: throw java.lang.IllegalArgumentException("Encryption not configured in this room")
+                ?: throw java.lang.UnsupportedOperationException("Encryption not configured in this room")
         // how to react if this is null??
         if (info.algorithm != MXCRYPTO_ALGORITHM_MEGOLM) {
-            throw java.lang.IllegalArgumentException("Unsupported algorithm ${info.algorithm}")
+            throw java.lang.UnsupportedOperationException("Unsupported algorithm ${info.algorithm}")
         }
         val settings = EncryptionSettings(
                 algorithm = EventEncryptionAlgorithm.MEGOLM_V1_AES_SHA2,
