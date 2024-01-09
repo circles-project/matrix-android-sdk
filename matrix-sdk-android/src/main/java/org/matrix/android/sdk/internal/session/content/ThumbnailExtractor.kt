@@ -109,6 +109,7 @@ internal class ThumbnailExtractor @Inject constructor(
         return thumbnailData
     }
 
+    @Suppress("DEPRECATION")
     private fun getBitmapFromUri(uri: Uri) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
         ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri))
     } else {
