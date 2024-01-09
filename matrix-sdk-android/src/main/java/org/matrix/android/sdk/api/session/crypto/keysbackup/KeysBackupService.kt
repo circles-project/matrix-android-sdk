@@ -16,7 +16,6 @@
 
 package org.matrix.android.sdk.api.session.crypto.keysbackup
 
-import org.matrix.android.sdk.api.MatrixCallback
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.listeners.StepProgressListener
 import org.matrix.android.sdk.api.session.crypto.model.ImportRoomKeysResult

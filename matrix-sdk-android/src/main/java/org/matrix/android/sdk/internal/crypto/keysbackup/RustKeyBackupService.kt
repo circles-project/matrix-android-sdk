@@ -494,7 +494,7 @@ internal class RustKeyBackupService @Inject constructor(
 
     /**
      * Same method as [RoomKeysRestClient.getRoomKey] except that it accepts nullable
-     * parameters and always returns a KeysBackupData object through the Callback
+     * parameters and always returns a KeysBackupData object through the Callback.
      */
     private suspend fun getKeys(sessionId: String?, roomId: String?, version: String): KeysBackupData {
         return when {
@@ -888,7 +888,7 @@ internal class RustKeyBackupService @Inject constructor(
     }
 
     /**
-     * Do a backup if there are new keys, with a delay
+     * Do a backup if there are new keys, with a delay.
      */
     suspend fun maybeBackupKeys() {
         withContext(coroutineDispatchers.crypto) {
@@ -919,7 +919,7 @@ internal class RustKeyBackupService @Inject constructor(
     }
 
     /**
-     * Send a chunk of keys to backup
+     * Send a chunk of keys to backup.
      */
     private suspend fun backupKeys(forceRecheck: Boolean = false) {
         Timber.v("backupKeys")
