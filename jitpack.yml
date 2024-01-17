@@ -1,6 +1,4 @@
 jdk:
   - openjdk11
 
-install:
-  - ./gradlew :matrix-sdk-android:assembleRelease
-  - find . -name "matrix-sdk-android-release.aar"
+timeout: 1800
