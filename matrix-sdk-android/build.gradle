@@ -239,8 +239,8 @@ dependencies {
 publishing {
     publications {
         release(MavenPublication) {
-            groupId = "org.matrix.android"
-            artifactId = "matrix-sdk-android"
+            groupId = "org.futo.gitlab.circles"
+            artifactId = "matrix-android-sdk"
             version = "1.6.10.1"
 
             afterEvaluate {
