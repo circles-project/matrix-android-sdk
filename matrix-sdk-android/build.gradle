@@ -3,14 +3,13 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'realm-android'
+apply plugin: 'maven-publish'
 
 if (project.hasProperty("coverage")) {
     apply plugin: 'jacoco'
 }
 
 buildscript {
-    apply from: 'gradle-publish.gradle'
-    
     repositories {
         // Do not use `mavenCentral()`, it prevents Dependabot from working properly
         maven {
@@ -103,6 +102,13 @@ android {
         }
         test {
             java.srcDirs += "src/sharedTest/java"
+        }
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
         }
     }
 }
@@ -228,4 +234,18 @@ dependencies {
     androidTestImplementation libs.tests.timberJunitRule
 
     androidTestUtil libs.androidx.orchestrator
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = "org.matrix.android"
+            artifactId = "matrix-sdk-android"
+            version = "1.6.10.1"
+
+            afterEvaluate {
+                from components.release
+            }
+        }
+    }
 }
