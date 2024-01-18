@@ -10,7 +10,7 @@
   <groupId>org.futo.gitlab.circles</groupId>
   <artifactId>matrix-android-sdk</artifactId>
   <version>1.6.10.1</version>
-  <packaging>pom</packaging>
+  <packaging>aar</packaging>
   <dependencies>
     <dependency>
       <groupId>io.realm</groupId>
