@@ -13,6 +13,7 @@ ext.groups = [
                         'com.github.vector-im',
                         'com.github.yalantis',
                         'com.github.Zhuinden',
+                        "org.futo.gitlab.circles"
                 ]
         ],
         jitsi       : [
