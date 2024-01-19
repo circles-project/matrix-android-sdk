@@ -133,25 +133,25 @@ configurations.all {
 }
 
 dependencies {
-    implementation libs.jetbrains.coroutinesCore
-    implementation libs.jetbrains.coroutinesAndroid
+    api libs.jetbrains.coroutinesCore
+    api libs.jetbrains.coroutinesAndroid
 
 
 //    implementation(name: 'crypto-android-release', ext: 'aar')
     //implementation 'net.java.dev.jna:jna:5.13.0@aar'
 
  //   implementation libs.androidx.appCompat
-    implementation libs.androidx.core
+    api libs.androidx.core
 
-    implementation libs.androidx.lifecycleLivedata
+    api libs.androidx.lifecycleLivedata
 
     // Lifecycle
-    implementation libs.androidx.lifecycleCommon
-    implementation libs.androidx.lifecycleProcess
+    api libs.androidx.lifecycleCommon
+    api libs.androidx.lifecycleProcess
 
     // Network
-    implementation libs.squareup.retrofit
-    implementation libs.squareup.retrofitMoshi
+    api libs.squareup.retrofit
+    api libs.squareup.retrofitMoshi
 
     // When version of okhttp is updated (current is 4.9.3), consider removing the workaround
     // to force usage of Protocol.HTTP_1_1. Check the status of:
@@ -160,52 +160,52 @@ dependencies {
     // - https://github.com/square/okhttp/issues/3146
     //Do not use bom for publishing
     def okhttp_version = "4.12.0"
-    implementation "com.squareup.okhttp3:okhttp:$okhttp_version"
-    implementation "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
+    api "com.squareup.okhttp3:okhttp:$okhttp_version"
+    api "com.squareup.okhttp3:logging-interceptor:$okhttp_version"
 
-    implementation libs.squareup.moshi
-    implementation libs.squareup.moshiAdapters
+    api libs.squareup.moshi
+    api libs.squareup.moshiAdapters
     kapt libs.squareup.moshiKotlin
 
     api "com.atlassian.commonmark:commonmark:0.13.0"
 
     // Image
-    implementation libs.androidx.exifinterface
+    api libs.androidx.exifinterface
 
     // Database
-    implementation 'com.github.Zhuinden:realm-monarchy:0.7.1'
+    api 'com.github.Zhuinden:realm-monarchy:0.7.1'
 
     kapt 'dk.ilios:realmfieldnameshelper:2.0.0'
 
     // Shared Preferences
-    implementation libs.androidx.preferenceKtx
+    api libs.androidx.preferenceKtx
 
     // Work
-    implementation libs.androidx.work
+    api libs.androidx.work
 
     // olm lib is now hosted in MavenCentral
-    implementation 'org.matrix.android:olm-sdk:3.2.12'
+    api 'org.matrix.android:olm-sdk:3.2.12'
 
     // DI
-    implementation libs.dagger.dagger
+    api libs.dagger.dagger
     kapt libs.dagger.daggerCompiler
 
     // Logging
-    implementation libs.jakewharton.timber
-    implementation 'com.facebook.stetho:stetho-okhttp3:1.6.0'
+    api libs.jakewharton.timber
+    api 'com.facebook.stetho:stetho-okhttp3:1.6.0'
 
     // Video compression
-    implementation 'com.otaliastudios:transcoder:0.10.5'
+    api 'com.otaliastudios:transcoder:0.10.5'
 
     // Exif data handling
-    implementation libs.apache.commonsImaging
+    api libs.apache.commonsImaging
 
-    implementation libs.google.phonenumber
+    api libs.google.phonenumber
 
     //Bcrypt
-    implementation 'at.favre.lib:bcrypt:0.9.0'
+    api 'at.favre.lib:bcrypt:0.9.0'
 
-    implementation 'org.futo.gitlab.circles:circles-rust-components-kotlin:v0.3.15.4'
+    api 'org.futo.gitlab.circles:circles-rust-components-kotlin:v0.3.15.4'
     //rustCryptoApi project(":library:rustCrypto")
 
     testImplementation libs.tests.junit
@@ -241,7 +241,7 @@ publishing {
         release(MavenPublication) {
             groupId = "org.futo.gitlab.circles"
             artifactId = "matrix-android-sdk"
-            version = "1.6.10.9"
+            version = "1.6.10.10"
 
             afterEvaluate {
                 from components.release
