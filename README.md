@@ -8,6 +8,7 @@ To update upstream from origin sdk repo:
 git pull upstream develop --allow-unrelated-histories
 
 To publish new build on Jitpack:
+- remove  martix-sdk-android-release.aar and pom.xml form root directory if exist
 - change version in :matrix-sd-android publishing{}
 - change version in jitpack.yml install script
 ./gradlew assembleRelease
