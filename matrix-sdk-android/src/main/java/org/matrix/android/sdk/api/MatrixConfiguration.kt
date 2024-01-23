@@ -30,15 +30,9 @@ data class MatrixConfiguration(
         val applicationFlavor: String = "Default-application-flavor",
         val cryptoConfig: MXCryptoConfig = MXCryptoConfig(),
         val cryptoFlavor: String = "Default-crypto-flavor",
-        val integrationUIUrl: String = "https://scalar.vector.im/",
-        val integrationRestUrl: String = "https://scalar.vector.im/api",
-        val integrationWidgetUrls: List<String> = listOf(
-                "https://scalar.vector.im/_matrix/integrations/v1",
-                "https://scalar.vector.im/api",
-                "https://scalar-staging.vector.im/_matrix/integrations/v1",
-                "https://scalar-staging.vector.im/api",
-                "https://scalar-staging.riot.im/scalar/api"
-        ),
+        val integrationUIUrl: String = "",
+        val integrationRestUrl: String = "",
+        val integrationWidgetUrls: List<String> = emptyList(),
         /**
          * Optional base url to create client permalinks (eg. https://www.example.com/#/) instead of Matrix ones (matrix.to links).
          * Do not forget to add the "#" which is required by the permalink parser.
