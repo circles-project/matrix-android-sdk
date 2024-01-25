@@ -192,7 +192,6 @@ dependencies {
 
     // Logging
     api libs.jakewharton.timber
-    api 'com.facebook.stetho:stetho-okhttp3:1.6.0'
 
     // Video compression
     api 'com.otaliastudios:transcoder:0.10.5'

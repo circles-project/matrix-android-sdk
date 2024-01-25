@@ -74,7 +74,6 @@ ext.groups = [
                         'com.facebook.fresco',
                         'com.facebook.infer.annotation',
                         'com.facebook.soloader',
-                        'com.facebook.stetho',
                         'com.facebook.yoga',
                         'com.fasterxml',
                         'com.fasterxml.jackson',
