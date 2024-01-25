@@ -242,7 +242,7 @@ publishing {
         release(MavenPublication) {
             groupId = "org.futo.gitlab.circles"
             artifactId = "matrix-android-sdk"
-            version = "1.6.10.12"
+            version = "1.6.10.13"
 
             afterEvaluate {
                 from components.release

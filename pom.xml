@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.futo.gitlab.circles</groupId>
   <artifactId>matrix-android-sdk</artifactId>
-  <version>1.6.10.12</version>
+  <version>1.6.10.13</version>
   <dependencies>
     <dependency>
       <groupId>io.realm</groupId>
@@ -135,12 +135,6 @@
       <groupId>com.jakewharton.timber</groupId>
       <artifactId>timber</artifactId>
       <version>5.0.1</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.facebook.stetho</groupId>
-      <artifactId>stetho-okhttp3</artifactId>
-      <version>1.6.0</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
