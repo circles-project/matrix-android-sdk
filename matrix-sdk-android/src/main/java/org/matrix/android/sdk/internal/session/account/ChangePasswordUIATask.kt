@@ -59,9 +59,12 @@ internal class DefaultChangePasswordUIATask @Inject constructor(
                     ) != UiaResult.SUCCESS
             ) {
                 Timber.d("## UIA: propagate failure")
-                throw throwable.toRegistrationFlowResponse()
+                val result = throwable.toRegistrationFlowResponse()
                         ?.let { Failure.RegistrationFlowError(it) }
                         ?: throwable
+
+                Timber.d("## UIA: $result")
+                throw result
             }
         }
     }

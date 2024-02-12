@@ -18,11 +18,15 @@ package org.matrix.android.sdk.internal.auth.registration
 
 import org.matrix.android.sdk.api.auth.UIABaseAuth
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.failure.Failure
+import org.matrix.android.sdk.api.failure.MatrixError
+import org.matrix.android.sdk.api.failure.MatrixError.Companion.M_FORBIDDEN
 import org.matrix.android.sdk.api.failure.toRegistrationFlowResponse
 import org.matrix.android.sdk.api.session.uia.UiaResult
 import org.matrix.android.sdk.api.session.uia.exceptions.UiaCancelledException
 import timber.log.Timber
+import javax.net.ssl.HttpsURLConnection
 import kotlin.coroutines.suspendCoroutine
 
 /**
@@ -44,6 +48,13 @@ internal suspend fun handleUIA(
     val flowResponse = failure.toRegistrationFlowResponse()
             ?: return UiaResult.FAILURE.also {
                 Timber.d("## UIA: not a UIA error")
+                tryOrNull {
+                    if (failure is Failure.RegistrationFlowError) {
+                        suspendCoroutine { continuation ->
+                            interceptor.performStage(failure.registrationFlowResponse, M_FORBIDDEN, continuation)
+                        }
+                    }
+                }
             }
 
     Timber.d("## UIA: error can be passed to interceptor")
