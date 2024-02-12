@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.futo.gitlab.circles</groupId>
   <artifactId>matrix-android-sdk</artifactId>
-  <version>1.6.10.14</version>
+  <version>1.6.10.15</version>
   <dependencies>
     <dependency>
       <groupId>io.realm</groupId>
