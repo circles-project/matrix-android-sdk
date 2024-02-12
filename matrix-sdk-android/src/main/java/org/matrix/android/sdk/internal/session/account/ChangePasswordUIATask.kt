@@ -18,11 +18,14 @@ package org.matrix.android.sdk.internal.session.account
 
 import org.matrix.android.sdk.api.auth.UIABaseAuth
 import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
+import org.matrix.android.sdk.api.failure.Failure
+import org.matrix.android.sdk.api.failure.toRegistrationFlowResponse
 import org.matrix.android.sdk.api.session.uia.UiaResult
 import org.matrix.android.sdk.internal.auth.registration.handleUIA
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.task.Task
+import timber.log.Timber
 import javax.inject.Inject
 
 //Created for Circles
@@ -55,7 +58,10 @@ internal class DefaultChangePasswordUIATask @Inject constructor(
                             }
                     ) != UiaResult.SUCCESS
             ) {
-                throw throwable
+                Timber.d("## UIA: propagate failure")
+                throw throwable.toRegistrationFlowResponse()
+                        ?.let { Failure.RegistrationFlowError(it) }
+                        ?: throwable
             }
         }
     }
