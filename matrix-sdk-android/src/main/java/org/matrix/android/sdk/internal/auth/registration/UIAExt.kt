@@ -48,7 +48,7 @@ internal suspend fun handleUIA(
     val flowResponse = failure.toRegistrationFlowResponse()
             ?: return UiaResult.FAILURE.also {
                 Timber.d("## UIA: not a UIA error")
-                tryOrNull {
+                tryOrNull { //Changed for Circles
                     if (failure is Failure.RegistrationFlowError) {
                         suspendCoroutine { continuation ->
                             interceptor.performStage(failure.registrationFlowResponse, M_FORBIDDEN, continuation)
