@@ -38,6 +38,6 @@ internal interface AccountAPI {
     suspend fun deactivate(@Body params: DeactivateAccountParams)
 
     //Added to handle reAuth uia stages
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/auth")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/auth/password")
     suspend fun changePasswordUIA(@Body params: ChangePasswordUIAParams)
 }
