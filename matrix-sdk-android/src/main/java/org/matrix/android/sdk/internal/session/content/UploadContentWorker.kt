@@ -165,6 +165,7 @@ internal class UploadContentWorker(val context: Context, params: WorkerParameter
                 if (attachment.type == ContentAttachmentData.Type.IMAGE &&
                         // Do not compress gif
                         attachment.mimeType != MimeTypes.Gif &&
+                        attachment.mimeType != MimeTypes.Webp &&
                         params.compressBeforeSending) {
                     notifyTracker(params) { contentUploadStateTracker.setCompressingImage(it) }
 
