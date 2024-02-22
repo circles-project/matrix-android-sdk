@@ -22,7 +22,7 @@ import org.matrix.android.sdk.api.auth.UIABaseAuth
 
 //Created for Circles
 @JsonClass(generateAdapter = true)
-internal data class ChangePasswordUIAParams(
+internal data class AuthUIAParams(
 
         @Json(name = "logout_devices")
         val logoutDevices: Boolean = true,
@@ -31,8 +31,8 @@ internal data class ChangePasswordUIAParams(
         val auth: Map<String, *>? = null
 ) {
     companion object {
-        fun create(auth: UIABaseAuth?, logoutDevices: Boolean): ChangePasswordUIAParams {
-            return ChangePasswordUIAParams(
+        fun create(auth: UIABaseAuth?, logoutDevices: Boolean): AuthUIAParams {
+            return AuthUIAParams(
                     auth = auth?.asMap(),
                     logoutDevices = logoutDevices
             )

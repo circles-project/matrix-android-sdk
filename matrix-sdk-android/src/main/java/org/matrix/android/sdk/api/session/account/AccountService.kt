@@ -53,6 +53,9 @@ interface AccountService {
             userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor
     )
 
-    //Added for password UIA stages
+    //Added for change password UIA stages
     suspend fun changePasswordStages(userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor, logoutAllDevices: Boolean = true)
+
+    //Added for forgot password UIA stages
+    suspend fun forgotPasswordStages(userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor, logoutAllDevices: Boolean = true)
 }

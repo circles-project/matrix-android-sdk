@@ -47,4 +47,7 @@ internal abstract class AccountModule {
 
     @Binds
     abstract fun bindChangePasswordUIATask(task: DefaultChangePasswordUIATask): ChangePasswordUIATask
+
+    @Binds
+    abstract fun bindForgotPasswordUIATask(task: DefaultForgotPasswordUIATask): ForgotPasswordUIATask
 }
