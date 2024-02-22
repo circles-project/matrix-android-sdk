@@ -43,5 +43,5 @@ internal interface AccountAPI {
 
     //Added to handle forgot password uia stages
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/auth/recovery")
-    suspend fun recoverPasswordUIA(@Body params: AuthUIAParams)
+    suspend fun resetPasswordUIA(@Body params: AuthUIAParams)
 }

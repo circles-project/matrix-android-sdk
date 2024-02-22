@@ -29,7 +29,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 //Created for Circles
-internal interface ForgotPasswordUIATask : Task<ForgotPasswordUIATask.Params, Unit> {
+internal interface ResetPasswordUIATask : Task<ResetPasswordUIATask.Params, Unit> {
     data class Params(
             val logoutAllDevices: Boolean,
             val userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor,
@@ -38,16 +38,16 @@ internal interface ForgotPasswordUIATask : Task<ForgotPasswordUIATask.Params, Un
 }
 
 //Created for Circles
-internal class DefaultForgotPasswordUIATask @Inject constructor(
+internal class DefaultResetPasswordUIATask @Inject constructor(
         private val accountAPI: AccountAPI,
         private val globalErrorReceiver: GlobalErrorReceiver
-) : ForgotPasswordUIATask {
+) : ResetPasswordUIATask {
 
-    override suspend fun execute(params: ForgotPasswordUIATask.Params) {
+    override suspend fun execute(params: ResetPasswordUIATask.Params) {
         val authParams = AuthUIAParams.create(params.userAuthParam, params.logoutAllDevices)
         try {
             executeRequest(globalErrorReceiver) {
-                accountAPI.recoverPasswordUIA(authParams)
+                accountAPI.resetPasswordUIA(authParams)
             }
         } catch (throwable: Throwable) {
             if (handleUIA(
