@@ -38,10 +38,14 @@ internal interface AccountAPI {
     suspend fun deactivate(@Body params: DeactivateAccountParams)
 
     //Added to handle change password uia stages
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/auth/password")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "account/auth/password")
     suspend fun changePasswordUIA(@Body params: AuthUIAParams)
 
     //Added to handle forgot password uia stages
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/auth/recovery")
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "account/auth/recovery")
     suspend fun resetPasswordUIA(@Body params: AuthUIAParams)
+
+    //Added to handle change email uia stages
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "account/auth/email")
+    suspend fun changeEmailUIA(@Body params: AuthUIAParams)
 }

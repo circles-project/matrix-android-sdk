@@ -24,7 +24,8 @@ internal class DefaultAccountService @Inject constructor(
         private val changePasswordTask: ChangePasswordTask,
         private val deactivateAccountTask: DeactivateAccountTask,
         private val changePasswordUIATask: ChangePasswordUIATask,
-        private val resetPasswordUIATask: DefaultResetPasswordUIATask
+        private val resetPasswordUIATask: DefaultResetPasswordUIATask,
+        private val changeEmailUIATask: DefaultChangeEmailUIATask
 ) : AccountService {
 
     override suspend fun changePassword(password: String, newPassword: String, logoutAllDevices: Boolean) {
@@ -43,5 +44,10 @@ internal class DefaultAccountService @Inject constructor(
     //Added for password UIA stages
     override suspend fun resetPasswordStages(userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor, logoutAllDevices: Boolean) {
         resetPasswordUIATask.execute(ResetPasswordUIATask.Params(logoutAllDevices, userInteractiveAuthInterceptor))
+    }
+
+    //Added for password UIA stages
+    override suspend fun changeEmailStages(userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor) {
+        changeEmailUIATask.execute(ChangeEmailUIATask.Params(userInteractiveAuthInterceptor))
     }
 }
