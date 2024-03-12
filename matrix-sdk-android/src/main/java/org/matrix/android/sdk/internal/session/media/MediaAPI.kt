@@ -48,7 +48,6 @@ internal interface MediaAPI {
     suspend fun getMediaUsage(): GetMediaUsageResult
 
     //Added for Circles
-    @FormUrlEncoded
     @POST("_matrix/media/unstable/admin/purge/{server}/{media_id}")
     suspend fun deleteMediaFile(
             @Path("server") server: String,
