@@ -68,7 +68,7 @@ class PollAggregationTest : InstrumentedTest {
 
         val aliceEventsListener = object : Timeline.Listener {
 
-            override fun onTimelineUpdated(snapshot: List<TimelineEvent>) {
+            override fun onTimelineUpdated(timelineId: String, snapshot: List<TimelineEvent>) {
                 snapshot.firstOrNull { it.root.getClearType() in EventType.POLL_START.values }?.let { pollEvent ->
                     val pollEventId = pollEvent.eventId
                     val pollContent = pollEvent.root.content?.toModel<MessagePollContent>()
@@ -80,49 +80,56 @@ class PollAggregationTest : InstrumentedTest {
                     }
 
                     when (lock.count.toInt()) {
-                        TOTAL_TEST_COUNT -> {
+                        TOTAL_TEST_COUNT     -> {
                             // Poll has just been created.
                             testInitialPollConditions(pollContent, pollSummary)
                             lock.countDown()
                             roomFromBobPOV.sendService().voteToPoll(pollEventId, pollContent.getBestPollCreationInfo()?.answers?.firstOrNull()?.id ?: "")
                         }
+
                         TOTAL_TEST_COUNT - 1 -> {
                             // Bob: Option 1
                             testBobVotesOption1(pollContent, pollSummary)
                             lock.countDown()
                             roomFromBobPOV.sendService().voteToPoll(pollEventId, pollContent.getBestPollCreationInfo()?.answers?.get(1)?.id ?: "")
                         }
+
                         TOTAL_TEST_COUNT - 2 -> {
                             // Bob: Option 2
                             testBobChangesVoteToOption2(pollContent, pollSummary)
                             lock.countDown()
                             roomFromAlicePOV.sendService().voteToPoll(pollEventId, pollContent.getBestPollCreationInfo()?.answers?.get(1)?.id ?: "")
                         }
+
                         TOTAL_TEST_COUNT - 3 -> {
                             // Alice: Option 2, Bob: Option 2
                             testAliceAndBobVoteToOption2(pollContent, pollSummary)
                             lock.countDown()
                             roomFromAlicePOV.sendService().voteToPoll(pollEventId, pollContent.getBestPollCreationInfo()?.answers?.firstOrNull()?.id ?: "")
                         }
+
                         TOTAL_TEST_COUNT - 4 -> {
                             // Alice: Option 1, Bob: Option 2
                             testAliceVotesOption1AndBobVotesOption2(pollContent, pollSummary)
                             lock.countDown()
                             roomFromBobPOV.sendService().endPoll(pollEventId)
                         }
+
                         TOTAL_TEST_COUNT - 5 -> {
                             // Alice: Option 1, Bob: Option 2 [poll is ended]
                             testEndedPoll(pollSummary)
                             lock.countDown()
                             roomFromAlicePOV.sendService().voteToPoll(pollEventId, pollContent.getBestPollCreationInfo()?.answers?.get(1)?.id ?: "")
                         }
+
                         TOTAL_TEST_COUNT - 6 -> {
                             // Alice: Option 1 (ignore change), Bob: Option 2 [poll is ended]
                             testAliceVotesOption1AndBobVotesOption2(pollContent, pollSummary)
                             testEndedPoll(pollSummary)
                             lock.countDown()
                         }
-                        else -> {
+
+                        else                 -> {
                             fail("Lock count ${lock.count} didn't handled.")
                         }
                     }
