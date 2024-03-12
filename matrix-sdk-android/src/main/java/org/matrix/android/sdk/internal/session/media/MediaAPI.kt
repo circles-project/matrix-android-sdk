@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.session.media
 
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.internal.network.NetworkConstants
+import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -47,10 +48,11 @@ internal interface MediaAPI {
     suspend fun getMediaUsage(): GetMediaUsageResult
 
     //Added for Circles
-    @POST("_matrix/media/unstable/admin/purge/{server}/{media_id}?access_token={token}")
+    @FormUrlEncoded
+    @POST("_matrix/media/unstable/admin/purge/{server}/{media_id}")
     suspend fun deleteMediaFile(
             @Path("server") server: String,
             @Path("media_id") mediaId: String,
-            @Path("token") token: String,
-    ): Unit
+            @Query("access_token") token: String,
+    )
 }

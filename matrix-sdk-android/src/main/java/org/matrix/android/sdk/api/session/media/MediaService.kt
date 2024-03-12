@@ -54,7 +54,7 @@ interface MediaService {
     suspend fun getMediaUsage(): MediaUsageInfo?
 
     //Added for Circles
-    suspend fun deleteMediaFile(mcxUrl: String)
+    suspend fun deleteMediaFile(mxcUrl: String)
 
     //Added for Circles
     suspend fun deleteMediaFile(server: String, mediaId: String)

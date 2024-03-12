@@ -58,10 +58,10 @@ internal class DefaultMediaService @Inject constructor(
     }
 
     //Added for Circles
-    override suspend fun deleteMediaFile(mcxUrl: String) {
-        val mcxPrefix = "mcx://"
-        if (mcxUrl.startsWith(mcxPrefix)) {
-            mcxUrl.removePrefix(mcxPrefix).split("/").takeIf { it.size == 2 }?.let {
+    override suspend fun deleteMediaFile(mxcUrl: String) {
+        val mxcPrefix = "mxc://"
+        if (mxcUrl.startsWith(mxcPrefix)) {
+            mxcUrl.removePrefix(mxcPrefix).split("/").takeIf { it.size == 2 }?.let {
                 val server = it.getOrNull(0) ?: return
                 val mediaId = it.getOrNull(1) ?: return
                 deleteMediaFile(server, mediaId)
