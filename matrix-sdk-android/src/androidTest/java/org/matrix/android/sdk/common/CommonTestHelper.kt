@@ -209,7 +209,7 @@ class CommonTestHelper internal constructor(context: Context, val cryptoConfig: 
 
         val messageSent = CompletableDeferred<String>()
         timeline.addListener(object : Timeline.Listener {
-            override fun onTimelineUpdated(timelineId: String, snapshot: List<TimelineEvent>) {
+            override fun onTimelineUpdated(roomId: String, timelineId: String, snapshot: List<TimelineEvent>) {
                 val decryptedMsg = timeline.getSnapshot()
                         .filter { it.root.getClearType() == EventType.MESSAGE }
                         .also { list ->
@@ -249,7 +249,7 @@ class CommonTestHelper internal constructor(context: Context, val cryptoConfig: 
                 Log.v("#E2E TEST", "onNewTimelineEvents snapshot is $eventIds")
             }
 
-            override fun onTimelineUpdated(timelineId: String, snapshot: List<TimelineEvent>) {
+            override fun onTimelineUpdated(roomId: String, timelineId: String, snapshot: List<TimelineEvent>) {
                 val success = timeline.getSnapshot()
                         // .filter { it.root.getClearType() == EventType.MESSAGE }
                         .also { list ->
@@ -282,7 +282,7 @@ class CommonTestHelper internal constructor(context: Context, val cryptoConfig: 
         timeline.start()
         val messageSent = CompletableDeferred<Unit>()
         timeline.addListener(object : Timeline.Listener {
-            override fun onTimelineUpdated(timelineId: String, snapshot: List<TimelineEvent>) {
+            override fun onTimelineUpdated(roomId: String, timelineId: String, snapshot: List<TimelineEvent>) {
                 val success = timeline.getSnapshot()
                         .filter { it.root.getClearType() == EventType.MESSAGE }
                         .also { list ->
@@ -319,7 +319,7 @@ class CommonTestHelper internal constructor(context: Context, val cryptoConfig: 
                                     suspendCoroutine<Unit> { continuation ->
                                         val timelineListener = object : Timeline.Listener {
 
-                                            override fun onTimelineUpdated(timelineId: String, snapshot: List<TimelineEvent>) {
+                                            override fun onTimelineUpdated(roomId: String, timelineId: String, snapshot: List<TimelineEvent>) {
                                                 val allSentMessages = snapshot
                                                         .filter { it.root.sendState == SendState.SYNCED }
                                                         .filter { it.root.getClearType() == EventType.MESSAGE }
@@ -521,7 +521,7 @@ class CommonTestHelper internal constructor(context: Context, val cryptoConfig: 
     fun createEventListener(latch: CountDownLatch, predicate: (List<TimelineEvent>) -> Boolean): Timeline.Listener {
         return object : Timeline.Listener {
 
-            override fun onTimelineUpdated(timelineId: String, snapshot: List<TimelineEvent>) {
+            override fun onTimelineUpdated(roomId: String, timelineId: String, snapshot: List<TimelineEvent>) {
                 if (predicate(snapshot)) {
                     latch.countDown()
                 }

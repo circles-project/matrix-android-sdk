@@ -98,7 +98,7 @@ interface Timeline {
          * @param snapshot the most up to date snapshot
          */
         // Added timelineId for circles
-        fun onTimelineUpdated(timelineId: String, snapshot: List<TimelineEvent>) = Unit
+        fun onTimelineUpdated(roomId: String, timelineId: String, snapshot: List<TimelineEvent>) = Unit
 
         /**
          * Called whenever an error we can't recover from occurred.

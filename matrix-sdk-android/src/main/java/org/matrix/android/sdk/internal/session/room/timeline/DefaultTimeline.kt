@@ -129,7 +129,7 @@ internal class DefaultTimeline(
         timelineScope.launch {
             val snapshot = strategy.buildSnapshot()
             withContext(coroutineDispatchers.main) {
-                tryOrNull { listener.onTimelineUpdated(timelineID, snapshot) }
+                tryOrNull { listener.onTimelineUpdated(roomId, timelineID, snapshot) }
             }
         }
         return true
@@ -342,10 +342,10 @@ internal class DefaultTimeline(
             listeners.forEach {
                 if (initialEventId != null && isFromThreadTimeline && snapshot.firstOrNull { it.eventId == initialEventId } == null) {
                     // We are in a thread timeline with a permalink, post update timeline only when the appropriate message have been found
-                    tryOrNull { it.onTimelineUpdated(timelineID, arrayListOf()) }
+                    tryOrNull { it.onTimelineUpdated(roomId, timelineID, arrayListOf()) }
                 } else {
                     // In all the other cases update timeline as expected
-                    tryOrNull { it.onTimelineUpdated(timelineID, snapshot) }
+                    tryOrNull { it.onTimelineUpdated(roomId, timelineID, snapshot) }
                 }
             }
         }

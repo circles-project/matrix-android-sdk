@@ -95,7 +95,7 @@ private suspend fun Timeline.waitForEncryptedMessages() {
                 // noop
             }
 
-            override fun onTimelineUpdated(timelineId: String, snapshot: List<TimelineEvent>) {
+            override fun onTimelineUpdated(roomId: String, timelineId: String, snapshot: List<TimelineEvent>) {
                 val newMessages = snapshot
                         .filter { it.root.sendState == SendState.SYNCED }
                         .filter { it.root.getClearType() == EventType.STATE_ROOM_ENCRYPTION }
