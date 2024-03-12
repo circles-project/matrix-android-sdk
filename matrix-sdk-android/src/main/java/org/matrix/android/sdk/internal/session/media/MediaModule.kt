@@ -47,4 +47,7 @@ internal abstract class MediaModule {
 
     @Binds
     abstract fun bindClearMediaCacheTask(task: DefaultClearPreviewUrlCacheTask): ClearPreviewUrlCacheTask
+
+    @Binds
+    abstract fun bindDeleteMediaFileTask(task: DefaultDeleteMediaFileTask): DeleteMediaFileTask
 }

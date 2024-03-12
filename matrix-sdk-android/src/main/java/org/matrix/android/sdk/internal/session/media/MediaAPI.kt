@@ -19,6 +19,8 @@ package org.matrix.android.sdk.internal.session.media
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.internal.network.NetworkConstants
 import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 internal interface MediaAPI {
@@ -40,7 +42,15 @@ internal interface MediaAPI {
     @GET(NetworkConstants.URI_API_MEDIA_PREFIX_PATH_R0 + "preview_url")
     suspend fun getPreviewUrlData(@Query("url") url: String, @Query("ts") ts: Long?): JsonDict
 
-    //Created for Circles
+    //Added for Circles
     @GET("_matrix/media/unstable/org.matrix.msc4034/" + "usage")
     suspend fun getMediaUsage(): GetMediaUsageResult
+
+    //Added for Circles
+    @POST("_matrix/media/unstable/admin/purge/{server}/{media_id}?access_token={token}")
+    suspend fun deleteMediaFile(
+            @Path("server") server: String,
+            @Path("media_id") mediaId: String,
+            @Path("token") token: String,
+    ): Unit
 }

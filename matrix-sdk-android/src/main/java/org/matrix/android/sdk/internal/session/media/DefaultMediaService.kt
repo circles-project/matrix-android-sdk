@@ -31,7 +31,8 @@ internal class DefaultMediaService @Inject constructor(
         private val getPreviewUrlTask: GetPreviewUrlTask,
         private val getRawPreviewUrlTask: GetRawPreviewUrlTask,
         private val urlsExtractor: UrlsExtractor,
-        private val getMediaUsageTask: GetMediaUsageTask
+        private val getMediaUsageTask: GetMediaUsageTask,
+        private val deleteMediaFileTask: DeleteMediaFileTask
 ) : MediaService {
     // Cache of extracted URLs
     private val extractedUrlsCache = LruCache<String, List<String>>(1_000)
@@ -54,6 +55,23 @@ internal class DefaultMediaService @Inject constructor(
     //Added for Circles
     override suspend fun getMediaUsage(): MediaUsageInfo? {
         return getMediaUsageTask.execute(Unit)
+    }
+
+    //Added for Circles
+    override suspend fun deleteMediaFile(mcxUrl: String) {
+        val mcxPrefix = "mcx://"
+        if (mcxUrl.startsWith(mcxPrefix)) {
+            mcxUrl.removePrefix(mcxPrefix).split("/").takeIf { it.size == 2 }?.let {
+                val server = it.getOrNull(0) ?: return
+                val mediaId = it.getOrNull(1) ?: return
+                deleteMediaFile(server, mediaId)
+            }
+        }
+    }
+
+    //Added for Circles
+    override suspend fun deleteMediaFile(server: String, mediaId: String) {
+        deleteMediaFileTask.execute(DeleteMediaFileTask.Params(server, mediaId))
     }
 
     override suspend fun clearCache() {
