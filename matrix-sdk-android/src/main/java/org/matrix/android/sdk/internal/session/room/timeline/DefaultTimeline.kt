@@ -422,4 +422,16 @@ internal class DefaultTimeline(
                     }
                 }
     }
+
+    //Added for Circles
+    override suspend fun awaitPaginateWithTimelineUpdate(direction: Timeline.Direction, count: Int): List<TimelineEvent> {
+        startTimelineJob?.join()
+        withContext(timelineDispatcher) {
+            val postSnapshot = loadMore(count, direction, fetchOnServerIfNeeded = true)
+            if (postSnapshot) {
+                postSnapshot()
+            }
+        }
+        return getSnapshot()
+    }
 }

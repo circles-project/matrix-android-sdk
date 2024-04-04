@@ -142,4 +142,10 @@ interface Timeline {
          */
         BACKWARDS
     }
+
+    /**
+     * This is the same than the regular paginate method, will will call the onTimelineUpdated
+     * Added for Circles
+     */
+    suspend fun awaitPaginateWithTimelineUpdate(direction: Direction, count: Int): List<TimelineEvent>
 }
