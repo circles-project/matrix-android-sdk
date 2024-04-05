@@ -144,8 +144,8 @@ interface Timeline {
     }
 
     /**
-     * This is the same than the regular paginate method, will will call the onTimelineUpdated
+     * Manually call the onTimelineUpdated method with latest snapshot
      * Added for Circles
      */
-    suspend fun awaitPaginateWithTimelineUpdate(direction: Direction, count: Int): List<TimelineEvent>
+    suspend fun postCurrentSnapshot()
 }
