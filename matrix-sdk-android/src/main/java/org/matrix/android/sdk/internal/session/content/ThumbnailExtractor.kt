@@ -25,6 +25,7 @@ import android.os.Build
 import android.provider.MediaStore
 import android.util.Size
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
+import org.matrix.android.sdk.api.session.room.model.message.ThumbnailInfo
 import org.matrix.android.sdk.api.util.MimeTypes
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
@@ -40,24 +41,26 @@ internal class ThumbnailExtractor @Inject constructor(
             val size: Long,
             val bytes: ByteArray,
             val mimeType: String
-    )
+    ) {
+        fun toThumbnailInfo() = ThumbnailInfo(width, height, size, mimeType)
+    }
 
     //Changed for Circles
     fun extractThumbnail(attachment: ContentAttachmentData): ThumbnailData? {
         if (attachment.mimeType == MimeTypes.Gif || attachment.mimeType == MimeTypes.Webp) return null
         return when (attachment.type) {
-            ContentAttachmentData.Type.VIDEO -> extractVideoThumbnail(attachment)
-            ContentAttachmentData.Type.IMAGE -> extractImageThumbnail(attachment)
+            ContentAttachmentData.Type.VIDEO -> extractVideoThumbnail(attachment.queryUri)
+            ContentAttachmentData.Type.IMAGE -> extractImageThumbnail(attachment.queryUri)
             else                             -> null
         }
     }
 
     //Changed for Circles
-    private fun extractVideoThumbnail(attachment: ContentAttachmentData): ThumbnailData? {
+    private fun extractVideoThumbnail(queryUri: Uri): ThumbnailData? {
         var thumbnailData: ThumbnailData? = null
         val mediaMetadataRetriever = MediaMetadataRetriever()
         try {
-            mediaMetadataRetriever.setDataSource(context, attachment.queryUri)
+            mediaMetadataRetriever.setDataSource(context, queryUri)
             mediaMetadataRetriever.frameAtTime?.let { thumbnail ->
                 val scaledThumbnail = createScaledThumbnailBitmap(thumbnail)
                 val outputStream = ByteArrayOutputStream()
@@ -76,7 +79,7 @@ internal class ThumbnailExtractor @Inject constructor(
                 thumbnail.recycle()
                 outputStream.reset()
             } ?: run {
-                Timber.e("Cannot extract video thumbnail at ${attachment.queryUri}")
+                Timber.e("Cannot extract video thumbnail at $queryUri")
             }
         } catch (e: Exception) {
             Timber.e(e, "Cannot extract video thumbnail")
@@ -87,10 +90,10 @@ internal class ThumbnailExtractor @Inject constructor(
     }
 
     //Added for Circles
-    private fun extractImageThumbnail(attachment: ContentAttachmentData): ThumbnailData? {
+    fun extractImageThumbnail(queryUri: Uri): ThumbnailData? {
         var thumbnailData: ThumbnailData? = null
         try {
-            val thumbnail = createScaledThumbnailBitmap(getBitmapFromUri(attachment.queryUri))
+            val thumbnail = createScaledThumbnailBitmap(getBitmapFromUri(queryUri))
             val outputStream = ByteArrayOutputStream()
             thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
             val thumbnailWidth = thumbnail.width

@@ -36,12 +36,14 @@ import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.MimeTypes
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.internal.session.content.FileUploader
+import org.matrix.android.sdk.internal.session.content.ThumbnailExtractor
 
 internal class DefaultStateService @AssistedInject constructor(
         @Assisted private val roomId: String,
         private val stateEventDataSource: StateEventDataSource,
         private val sendStateTask: SendStateTask,
         private val fileUploader: FileUploader,
+        private val thumbnailExtractor: ThumbnailExtractor
 ) : StateService {
 
     @AssistedFactory
@@ -83,7 +85,7 @@ internal class DefaultStateService @AssistedInject constructor(
         // Safe treatment for PowerLevelContent
         return when (eventType) {
             EventType.STATE_ROOM_POWER_LEVELS -> toSafePowerLevelsContentDict()
-            else -> this
+            else                              -> this
         }
     }
 
@@ -154,10 +156,14 @@ internal class DefaultStateService @AssistedInject constructor(
     }
 
     override suspend fun updateAvatar(avatarUri: Uri, fileName: String) {
-        val response = fileUploader.uploadFromUri(avatarUri, fileName, MimeTypes.Jpeg)
+        val thumbnailData = thumbnailExtractor.extractImageThumbnail(avatarUri) ?: return
+        val response = fileUploader.uploadByteArray(thumbnailData.bytes, fileName, MimeTypes.Jpeg)
         sendStateEvent(
                 eventType = EventType.STATE_ROOM_AVATAR,
-                body = mapOf("url" to response.contentUri),
+                body = mapOf(
+                        "url" to response.contentUri,
+                        "info" to thumbnailData.toThumbnailInfo()
+                ),
                 stateKey = ""
         )
     }
