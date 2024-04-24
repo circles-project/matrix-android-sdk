@@ -222,8 +222,8 @@ fun RealmToMigrate.pickledOlmSessions(pickleKey: ByteArray, chunkSize: Int, onCh
                         pickle = pickle,
                         senderKey = deviceKey,
                         createdUsingFallbackKey = false,
-                        creationTime = lastReceivedMessageTs.toString(),
-                        lastUseTime = lastReceivedMessageTs.toString()
+                        creationTime = lastReceivedMessageTs.toULong(),
+                        lastUseTime = lastReceivedMessageTs.toULong()
                 )
                 // should we check the tracking status?
                 pickledSessions.add(pickledSession)
@@ -323,8 +323,8 @@ private fun OlmSessionEntity.toPickledSession(pickleKey: ByteArray): PickledSess
             pickle = pickledOlmSession,
             senderKey = deviceKey,
             createdUsingFallbackKey = false,
-            creationTime = lastReceivedMessageTs.toString(),
-            lastUseTime = lastReceivedMessageTs.toString()
+            creationTime = lastReceivedMessageTs.toULong(),
+            lastUseTime = lastReceivedMessageTs.toULong()
     )
 }
 

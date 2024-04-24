@@ -71,9 +71,9 @@ import org.matrix.android.sdk.internal.util.JsonCanonicalizer
 import org.matrix.olm.OlmException
 import org.matrix.rustcomponents.sdk.crypto.Request
 import org.matrix.rustcomponents.sdk.crypto.RequestType
-import org.matrix.rustcomponents.sdk.crypto.SignatureState
 import org.matrix.rustcomponents.sdk.crypto.SignatureVerification
 import timber.log.Timber
+import uniffi.matrix_sdk_crypto.SignatureState
 import java.security.InvalidParameterException
 import javax.inject.Inject
 import kotlin.random.Random
@@ -414,15 +414,17 @@ internal class RustKeyBackupService @Inject constructor(
         val authData = getMegolmBackupAuthData(keysBackupData)
 
         when {
-            authData == null -> {
+            authData == null                          -> {
                 Timber.w("isValidRecoveryKeyForKeysBackupVersion: Key backup is missing required data")
                 throw IllegalArgumentException("Missing element")
             }
+
             backupKey.publicKey != authData.publicKey -> {
                 Timber.w("isValidRecoveryKeyForKeysBackupVersion: Public keys mismatch")
                 throw IllegalArgumentException("Invalid recovery key or password")
             }
-            else -> {
+
+            else                                      -> {
                 // This case is fine, the public key on the server matches the public key the
                 // recovery key produced.
             }
@@ -501,10 +503,12 @@ internal class RustKeyBackupService @Inject constructor(
             roomId != null && sessionId != null -> {
                 sender.downloadBackedUpKeys(version, roomId, sessionId)
             }
-            roomId != null -> {
+
+            roomId != null                      -> {
                 sender.downloadBackedUpKeys(version, roomId)
             }
-            else -> {
+
+            else                                -> {
                 sender.downloadBackedUpKeys(version)
             }
         }
@@ -829,13 +833,15 @@ internal class RustKeyBackupService @Inject constructor(
         val authData = getMegolmBackupAuthData(keysBackupData)
 
         return when {
-            authData == null -> {
+            authData == null                                                                 -> {
                 throw IllegalArgumentException("recoveryKeyFromPassword: invalid parameter")
             }
+
             authData.privateKeySalt.isNullOrBlank() || authData.privateKeyIterations == null -> {
                 throw java.lang.IllegalArgumentException("recoveryKeyFromPassword: Salt and/or iterations not found in key backup auth data")
             }
-            else -> {
+
+            else                                                                             -> {
                 BackupRecoveryKey.fromPassphrase(password, authData.privateKeySalt, authData.privateKeyIterations)
             }
         }
@@ -893,11 +899,12 @@ internal class RustKeyBackupService @Inject constructor(
     suspend fun maybeBackupKeys() {
         withContext(coroutineDispatchers.crypto) {
             when {
-                isStuck() -> {
+                isStuck()                                   -> {
                     // If not already done, or in error case, check for a valid backup version on the homeserver.
                     // If there is one, maybeBackupKeys will be called again.
                     checkAndStartKeysBackup()
                 }
+
                 getState() == KeysBackupState.ReadyToBackUp -> {
                     keysBackupStateManager.state = KeysBackupState.WillBackUp
 
@@ -911,7 +918,8 @@ internal class RustKeyBackupService @Inject constructor(
                         tryOrNull("AUTO backup failed") { backupKeys() }
                     }
                 }
-                else -> {
+
+                else                                        -> {
                     Timber.v("maybeBackupKeys: Skip it because state: ${getState()}")
                 }
             }
@@ -989,7 +997,8 @@ internal class RustKeyBackupService @Inject constructor(
                                     // is available on the homeserver
                                     checkAndStartKeysBackup()
                                 }
-                                else ->
+
+                                else                                  ->
                                     // Come back to the ready state so that we will retry on the next received key
                                     keysBackupStateManager.state = KeysBackupState.ReadyToBackUp
                             }

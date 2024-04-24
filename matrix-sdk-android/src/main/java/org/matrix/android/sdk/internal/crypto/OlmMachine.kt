@@ -75,7 +75,6 @@ import org.matrix.rustcomponents.sdk.crypto.DeviceLists
 import org.matrix.rustcomponents.sdk.crypto.EncryptionSettings
 import org.matrix.rustcomponents.sdk.crypto.KeyRequestPair
 import org.matrix.rustcomponents.sdk.crypto.KeysImportResult
-import org.matrix.rustcomponents.sdk.crypto.LocalTrust
 import org.matrix.rustcomponents.sdk.crypto.Logger
 import org.matrix.rustcomponents.sdk.crypto.MegolmV1BackupKey
 import org.matrix.rustcomponents.sdk.crypto.Request
@@ -86,6 +85,7 @@ import org.matrix.rustcomponents.sdk.crypto.ShieldState
 import org.matrix.rustcomponents.sdk.crypto.SignatureVerification
 import org.matrix.rustcomponents.sdk.crypto.setLogger
 import timber.log.Timber
+import uniffi.matrix_sdk_crypto.LocalTrust
 import java.io.File
 import java.nio.charset.Charset
 import javax.inject.Inject
@@ -187,7 +187,7 @@ internal class OlmMachine @Inject constructor(
 
         val crossSigningVerified = when (val ownIdentity = getIdentity(userId())) {
             is OwnUserIdentity -> ownIdentity.trustsOurOwnDevice()
-            else -> false
+            else               -> false
         }
 
         return CryptoDeviceInfo(
@@ -291,7 +291,7 @@ internal class OlmMachine @Inject constructor(
             // checking the returned to devices to check for room keys.
             // XXX Anyhow there is now proper signaling we should soon stop parsing them manually
             receiveSyncChanges.toDeviceEvents.map {
-                        outAdapter.fromJson(it) ?: Event()
+                outAdapter.fromJson(it) ?: Event()
             }
         }
 
@@ -487,15 +487,18 @@ internal class OlmMachine @Inject constructor(
                                 MXCryptoError.Base(MXCryptoError.ErrorType.UNKNOWN_INBOUND_SESSION_ID, throwable.error)
                             }
                         }
-                        is DecryptionException.Megolm -> {
+
+                        is DecryptionException.Megolm         -> {
                             // TODO check if it's the correct binding?
                             // Could encapsulate more than that, need to update sdk
                             MXCryptoError.Base(MXCryptoError.ErrorType.UNKNOWN_MESSAGE_INDEX, throwable.error)
                         }
-                        is DecryptionException.Identifier -> {
+
+                        is DecryptionException.Identifier     -> {
                             MXCryptoError.Base(MXCryptoError.ErrorType.BAD_EVENT_FORMAT, MXCryptoError.BAD_EVENT_FORMAT_TEXT_REASON)
                         }
-                        else -> {
+
+                        else                                  -> {
                             val reason = String.format(
                                     MXCryptoError.UNABLE_TO_DECRYPT_REASON,
                                     throwable.message,
@@ -515,14 +518,15 @@ internal class OlmMachine @Inject constructor(
     private fun ShieldState.toVerificationState(): MessageVerificationState? {
         return when (this.color) {
             ShieldColor.NONE -> MessageVerificationState.VERIFIED
-            ShieldColor.RED -> {
+            ShieldColor.RED  -> {
                 when (this.message) {
-                    "Encrypted by an unverified device." -> MessageVerificationState.UN_SIGNED_DEVICE
+                    "Encrypted by an unverified device."               -> MessageVerificationState.UN_SIGNED_DEVICE
                     "Encrypted by a device not verified by its owner." -> MessageVerificationState.UN_SIGNED_DEVICE
-                    "Encrypted by an unknown or deleted device." -> MessageVerificationState.UNKNOWN_DEVICE
-                    else -> MessageVerificationState.UN_SIGNED_DEVICE
+                    "Encrypted by an unknown or deleted device."       -> MessageVerificationState.UNKNOWN_DEVICE
+                    else                                               -> MessageVerificationState.UN_SIGNED_DEVICE
                 }
             }
+
             ShieldColor.GREY -> {
                 MessageVerificationState.UNSAFE_SOURCE
             }
@@ -826,7 +830,7 @@ internal class OlmMachine @Inject constructor(
             inner.bootstrapCrossSigning()
         }
         requestSender.uploadCrossSigningKeys(requests.uploadSigningKeysRequest, uiaInterceptor)
-        requestSender.sendSignatureUpload(requests.signatureRequest)
+        requestSender.sendSignatureUpload(requests.uploadSignatureRequest)
     }
 
     /**
@@ -882,6 +886,7 @@ internal class OlmMachine @Inject constructor(
             inner.queryMissingSecretsFromOtherSessions()
         }
     }
+
     @Throws(CryptoStoreException::class)
     suspend fun enableBackupV1(key: String, version: String) {
         return withContext(coroutineDispatchers.computation) {
