@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.futo.gitlab.circles</groupId>
   <artifactId>matrix-android-sdk</artifactId>
-  <version>1.6.10.34</version>
+  <version>1.6.10.35</version>
   <dependencies>
     <dependency>
       <groupId>io.realm</groupId>
@@ -156,15 +156,9 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>at.favre.lib</groupId>
-      <artifactId>bcrypt</artifactId>
-      <version>0.9.0</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>org.futo.gitlab.circles</groupId>
       <artifactId>circles-rust-components-kotlin</artifactId>
-      <version>v0.3.15.7</version>
+      <version>v0.3.15.8</version>
       <type>aar</type>
       <scope>compile</scope>
     </dependency>
