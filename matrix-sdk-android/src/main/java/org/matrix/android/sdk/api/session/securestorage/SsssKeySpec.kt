@@ -18,7 +18,6 @@ package org.matrix.android.sdk.api.session.securestorage
 
 import org.matrix.android.sdk.api.listeners.ProgressListener
 import org.matrix.android.sdk.api.session.crypto.keysbackup.extractCurveKeyFromRecoveryKey
-import org.matrix.android.sdk.internal.crypto.keysbackup.BCryptManager
 import org.matrix.android.sdk.internal.crypto.keysbackup.deriveKey
 
 /** Tag class. */
@@ -47,10 +46,6 @@ data class RawBytesKeySpec(
                         privateKey = it
                 )
             }
-        }
-        //Added for BCrypt support
-        fun fromBCryptPassphrase(passphrase: String, salt: String, iterations: Int): RawBytesKeySpec {
-            return RawBytesKeySpec(BCryptManager.retrievePrivateKeyWithPassword(passphrase, salt, iterations))
         }
     }
 

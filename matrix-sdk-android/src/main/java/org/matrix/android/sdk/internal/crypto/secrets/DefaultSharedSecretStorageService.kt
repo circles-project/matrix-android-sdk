@@ -19,7 +19,6 @@ package org.matrix.android.sdk.internal.crypto.secrets
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
-import org.matrix.android.sdk.api.crypto.BCRYPT_ALGORITHM_BACKUP
 import org.matrix.android.sdk.api.crypto.BSSPEKE_ALGORITHM_BACKUP
 import org.matrix.android.sdk.api.crypto.SSSS_ALGORITHM_AES_HMAC_SHA2
 import org.matrix.android.sdk.api.crypto.SSSS_ALGORITHM_CURVE25519_AES_SHA2
@@ -44,7 +43,6 @@ import org.matrix.android.sdk.api.session.securestorage.SsssPassphrase
 import org.matrix.android.sdk.api.util.fromBase64
 import org.matrix.android.sdk.api.util.toBase64NoPadding
 import org.matrix.android.sdk.internal.crypto.SecretShareManager
-import org.matrix.android.sdk.internal.crypto.keysbackup.BCryptManager
 import org.matrix.android.sdk.internal.crypto.keysbackup.generatePrivateKeyWithPassword
 import org.matrix.android.sdk.internal.crypto.tools.HkdfSha256
 import org.matrix.android.sdk.internal.crypto.tools.withOlmDecryption
@@ -182,7 +180,8 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
                             throw SharedSecretStorageError.UnknownAlgorithm(key.keyInfo.content.algorithm ?: "")
                         }
                     }
-                    is KeyInfoResult.Error -> throw key.error
+
+                    is KeyInfoResult.Error   -> throw key.error
                 }
             }
 
@@ -395,41 +394,6 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
 
     override suspend fun requestMissingSecrets() {
         secretShareManager.requestMissingSecrets()
-    }
-
-    //Added for Circles
-    override suspend fun generateBCryptKeyWithPassphrase(
-            keyId: String,
-            passphrase: String,
-            keySigner: KeySigner,
-            progressListener: ProgressListener?,
-            userName: String
-    ): SsssKeyCreationInfo {
-        return withContext(cryptoCoroutineScope.coroutineContext + coroutineDispatchers.computation) {
-            val privatePart = BCryptManager.generateBcryptPrivateKeyWithPassword(userName, passphrase)
-
-            val storageKeyContent = SecretStorageKeyContent(
-                    algorithm = SSSS_ALGORITHM_AES_HMAC_SHA2,
-                    passphrase = SsssPassphrase(algorithm = BCRYPT_ALGORITHM_BACKUP, iterations = privatePart.iterations, salt = privatePart.salt)
-            )
-
-            val signedContent = keySigner.sign(storageKeyContent.canonicalSignable())?.let {
-                storageKeyContent.copy(
-                        signatures = it
-                )
-            } ?: storageKeyContent
-
-            accountDataService.updateUserAccountData(
-                    "$KEY_ID_BASE.$keyId",
-                    signedContent.toContent()
-            )
-            SsssKeyCreationInfo(
-                    keyId = keyId,
-                    content = storageKeyContent,
-                    recoveryKey = computeRecoveryKey(privatePart.privateKey),
-                    keySpec = RawBytesKeySpec(privatePart.privateKey)
-            )
-        }
     }
 
     //Added for Circles

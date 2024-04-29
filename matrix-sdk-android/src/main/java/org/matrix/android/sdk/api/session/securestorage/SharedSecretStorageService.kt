@@ -144,15 +144,6 @@ interface SharedSecretStorageService {
     suspend fun requestMissingSecrets()
 
     //Added for Circles
-    suspend fun generateBCryptKeyWithPassphrase(
-            keyId: String,
-            passphrase: String,
-            keySigner: KeySigner,
-            progressListener: ProgressListener?,
-            userName: String
-    ): SsssKeyCreationInfo
-
-    //Added for Circles
     suspend fun generateBsSpekeKeyInfo(
             keyId: String,
             privateKey: ByteArray,

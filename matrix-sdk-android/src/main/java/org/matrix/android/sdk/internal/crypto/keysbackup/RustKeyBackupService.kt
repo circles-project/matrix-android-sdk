@@ -30,7 +30,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
-import org.matrix.android.sdk.api.crypto.BCRYPT_ALGORITHM_BACKUP
 import org.matrix.android.sdk.api.crypto.BSSPEKE_ALGORITHM_BACKUP
 import org.matrix.android.sdk.api.crypto.MXCRYPTO_ALGORITHM_MEGOLM_BACKUP
 import org.matrix.android.sdk.api.extensions.tryOrNull
@@ -859,7 +858,6 @@ internal class RustKeyBackupService @Inject constructor(
                 .takeIf {
                     it.version.isNotEmpty() &&
                             (it.algorithm == MXCRYPTO_ALGORITHM_MEGOLM_BACKUP
-                                    || it.algorithm == BCRYPT_ALGORITHM_BACKUP
                                     || it.algorithm == BSSPEKE_ALGORITHM_BACKUP)
                 }
                 ?.getAuthDataAsMegolmBackupAuthData()
