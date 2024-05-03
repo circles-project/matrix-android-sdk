@@ -247,4 +247,7 @@ interface CryptoService {
     suspend fun onStateEvent(roomId: String, event: Event, cryptoStoreAggregator: CryptoStoreAggregator?) {}
     suspend fun onSyncCompleted(syncResponse: SyncResponse, cryptoStoreAggregator: CryptoStoreAggregator)
     fun logDbUsageInfo()
+
+    //Added for Circles
+    suspend fun createDehydratedDevice(pickleKey: ByteArray): String?
 }
