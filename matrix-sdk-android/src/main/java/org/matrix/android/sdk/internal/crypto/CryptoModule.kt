@@ -63,7 +63,9 @@ import org.matrix.android.sdk.internal.crypto.store.RustCryptoStore
 import org.matrix.android.sdk.internal.crypto.store.db.RealmCryptoStoreMigration
 import org.matrix.android.sdk.internal.crypto.store.db.RealmCryptoStoreModule
 import org.matrix.android.sdk.internal.crypto.tasks.ClaimOneTimeKeysForUsersDeviceTask
+import org.matrix.android.sdk.internal.crypto.tasks.CreateDehydratedDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultClaimOneTimeKeysForUsersDevice
+import org.matrix.android.sdk.internal.crypto.tasks.DefaultCreateDehydratedDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultDeleteDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultDownloadKeysForUsers
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultEncryptEventTask
@@ -253,4 +255,7 @@ internal abstract class CryptoModule {
 
     @Binds
     abstract fun bindKeysBackupService(service: RustKeyBackupService): KeysBackupService
+
+    @Binds
+    abstract fun bindCreateDehydratedDeviceTask(task: DefaultCreateDehydratedDeviceTask): CreateDehydratedDeviceTask
 }

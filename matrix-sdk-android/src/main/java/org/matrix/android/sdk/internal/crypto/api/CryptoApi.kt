@@ -18,6 +18,7 @@ package org.matrix.android.sdk.internal.crypto.api
 import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
 import org.matrix.android.sdk.api.session.crypto.model.DevicesListResponse
 import org.matrix.android.sdk.api.util.JsonDict
+import org.matrix.android.sdk.internal.crypto.model.rest.CreateDehydratedDeviceResponse
 import org.matrix.android.sdk.internal.crypto.model.rest.DeleteDeviceParams
 import org.matrix.android.sdk.internal.crypto.model.rest.DeleteDevicesParams
 import org.matrix.android.sdk.internal.crypto.model.rest.KeyChangesResponse
@@ -171,4 +172,10 @@ internal interface CryptoApi {
             @Query("from") oldToken: String,
             @Query("to") newToken: String
     ): KeyChangesResponse
+
+    //Added for Circles
+    @PUT("unstable/org.matrix.msc3814.v1/dehydrated_device")
+    suspend fun createDehydratedDevice(
+            @Body params: String
+    ): CreateDehydratedDeviceResponse
 }
