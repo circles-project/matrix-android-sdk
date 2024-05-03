@@ -174,7 +174,7 @@ internal interface CryptoApi {
     ): KeyChangesResponse
 
     //Added for Circles
-    @PUT("unstable/org.matrix.msc3814.v1/dehydrated_device")
+    @PUT(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "org.matrix.msc3814.v1/dehydrated_device")
     suspend fun createDehydratedDevice(
             @Body params: String
     ): CreateDehydratedDeviceResponse
