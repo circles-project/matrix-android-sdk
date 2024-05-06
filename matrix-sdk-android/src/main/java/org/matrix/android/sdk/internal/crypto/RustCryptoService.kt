@@ -78,6 +78,7 @@ import org.matrix.android.sdk.internal.crypto.network.OutgoingRequestsProcessor
 import org.matrix.android.sdk.internal.crypto.repository.WarnOnUnknownDeviceRepository
 import org.matrix.android.sdk.internal.crypto.store.IMXCommonCryptoStore
 import org.matrix.android.sdk.internal.crypto.store.db.CryptoStoreAggregator
+import org.matrix.android.sdk.internal.crypto.tasks.CreateDehydratedDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.DeleteDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.GetDeviceInfoTask
 import org.matrix.android.sdk.internal.crypto.tasks.GetDevicesTask
@@ -136,6 +137,7 @@ internal class RustCryptoService @Inject constructor(
         private val outgoingRequestsProcessor: OutgoingRequestsProcessor,
         private val matrixConfiguration: MatrixConfiguration,
         private val perSessionBackupQueryRateLimiter: PerSessionBackupQueryRateLimiter,
+        private val createDehydratedDeviceTask: CreateDehydratedDeviceTask
 ) : CryptoService {
 
     private val isStarting = AtomicBoolean(false)
@@ -145,8 +147,8 @@ internal class RustCryptoService @Inject constructor(
 
     override suspend fun onStateEvent(roomId: String, event: Event, cryptoStoreAggregator: CryptoStoreAggregator?) {
         when (event.type) {
-            EventType.STATE_ROOM_ENCRYPTION -> onRoomEncryptionEvent(roomId, event)
-            EventType.STATE_ROOM_MEMBER -> onRoomMembershipEvent(roomId, event)
+            EventType.STATE_ROOM_ENCRYPTION         -> onRoomEncryptionEvent(roomId, event)
+            EventType.STATE_ROOM_MEMBER             -> onRoomMembershipEvent(roomId, event)
             EventType.STATE_ROOM_HISTORY_VISIBILITY -> onRoomHistoryVisibilityEvent(roomId, event, cryptoStoreAggregator)
         }
     }
@@ -154,8 +156,8 @@ internal class RustCryptoService @Inject constructor(
     override suspend fun onLiveEvent(roomId: String, event: Event, isInitialSync: Boolean, cryptoStoreAggregator: CryptoStoreAggregator?) {
         if (event.isStateEvent()) {
             when (event.getClearType()) {
-                EventType.STATE_ROOM_ENCRYPTION -> onRoomEncryptionEvent(roomId, event)
-                EventType.STATE_ROOM_MEMBER -> onRoomMembershipEvent(roomId, event)
+                EventType.STATE_ROOM_ENCRYPTION         -> onRoomEncryptionEvent(roomId, event)
+                EventType.STATE_ROOM_MEMBER             -> onRoomMembershipEvent(roomId, event)
                 EventType.STATE_ROOM_HISTORY_VISIBILITY -> onRoomHistoryVisibilityEvent(roomId, event, cryptoStoreAggregator)
             }
         } else {
@@ -662,7 +664,7 @@ internal class RustCryptoService @Inject constructor(
                 )
             }
             when (event.type) {
-                EventType.ROOM_KEY -> {
+                EventType.ROOM_KEY           -> {
                     val content = event.getClearContent().toModel<RoomKeyContent>() ?: return@forEach
                     content.sessionKey
                     val roomId = content.sessionId ?: return@forEach
@@ -671,6 +673,7 @@ internal class RustCryptoService @Inject constructor(
                     notifyRoomKeyReceived(roomId, sessionId)
                     matrixConfiguration.cryptoAnalyticsPlugin?.onRoomKeyImported(sessionId, EventType.ROOM_KEY)
                 }
+
                 EventType.FORWARDED_ROOM_KEY -> {
                     val content = event.getClearContent().toModel<ForwardedRoomKeyContent>() ?: return@forEach
 
@@ -680,13 +683,15 @@ internal class RustCryptoService @Inject constructor(
                     notifyRoomKeyReceived(roomId, sessionId)
                     matrixConfiguration.cryptoAnalyticsPlugin?.onRoomKeyImported(sessionId, EventType.FORWARDED_ROOM_KEY)
                 }
-                EventType.SEND_SECRET -> {
+
+                EventType.SEND_SECRET        -> {
                     // The rust-sdk will clear this event if it's invalid, this will produce an invalid base64 error
                     // when we try to construct the recovery key.
                     val secretContent = event.getClearContent().toModel<SecretSendEventContent>() ?: return@forEach
                     this.keysBackupService.onSecretKeyGossip(secretContent.secretValue)
                 }
-                else -> {
+
+                else                         -> {
                     this.verificationService.onEvent(null, event)
                 }
             }
@@ -856,9 +861,9 @@ internal class RustCryptoService @Inject constructor(
     override fun removeSessionListener(listener: NewSessionListener) {
         megolmSessionImportManager.removeListener(listener)
     }
-/* ==========================================================================================
- * DEBUG INFO
- * ========================================================================================== */
+    /* ==========================================================================================
+     * DEBUG INFO
+     * ========================================================================================== */
 
     override fun toString(): String {
         return "DefaultCryptoService of $myUserId ($deviceId)"
@@ -923,6 +928,19 @@ internal class RustCryptoService @Inject constructor(
                 outgoingRequestsProcessor.processOutgoingRequests(olmMachine)
             }
         }
+    }
+
+    //Created for Circles
+    override suspend fun createDehydratedDevice(pickleKey: ByteArray): String? {
+        val request = withContext(coroutineDispatchers.crypto) {
+            val innerOlm = olmMachine.inner()
+            val dehydratedDevice = innerOlm.dehydratedDevices().create()
+            dehydratedDevice.keysForUpload("dehydrated_circles_android", pickleKey)
+        }
+        val dehydratedDeviceIdResponse = withContext(coroutineDispatchers.io) {
+            createDehydratedDeviceTask.execute(request)
+        }
+        return dehydratedDeviceIdResponse.deviceId
     }
 
     companion object {
