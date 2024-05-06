@@ -84,7 +84,10 @@ internal class DefaultIdentityService @Inject constructor(
         private val sessionParams: SessionParams
 ) : IdentityService, SessionLifecycleObserver {
 
-    private val lifecycleOwner: LifecycleOwner = LifecycleOwner { lifecycleRegistry }
+    private val lifecycleOwner: LifecycleOwner = object : LifecycleOwner {
+        override val lifecycle: Lifecycle
+            get() = lifecycleRegistry
+    }
     private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(lifecycleOwner)
 
     private val listeners = mutableSetOf<IdentityServiceListener>()
@@ -283,8 +286,9 @@ internal class DefaultIdentityService @Inject constructor(
                     identityStore.setToken(null)
                     lookUpInternal(false, threePids)
                 }
-                throwable.isTermsNotSigned() -> throw IdentityServiceError.TermsNotSignedException
-                else -> throw throwable
+
+                throwable.isTermsNotSigned()           -> throw IdentityServiceError.TermsNotSignedException
+                else                                   -> throw throwable
             }
         }
     }

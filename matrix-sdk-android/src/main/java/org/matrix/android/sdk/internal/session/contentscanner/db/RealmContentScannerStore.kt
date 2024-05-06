@@ -17,7 +17,7 @@
 package org.matrix.android.sdk.internal.session.contentscanner.db
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.map
 import com.zhuinden.monarchy.Monarchy
 import io.realm.Realm
 import io.realm.RealmConfiguration
@@ -106,7 +106,8 @@ internal class RealmContentScannerStore @Inject constructor(
                 ScanState.IN_PROGRESS,
                 ScanState.TRUSTED,
                 ScanState.INFECTED -> true
-                else -> false
+
+                else               -> false
             }
         }
         return isKnown
@@ -138,7 +139,7 @@ internal class RealmContentScannerStore @Inject constructor(
                     entity.toModel()
                 }
         )
-        return Transformations.map(liveData) {
+        return liveData.map {
             it.firstOrNull().toOptional()
         }
     }
