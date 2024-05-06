@@ -16,24 +16,29 @@
 
 package org.matrix.android.sdk.internal.crypto.tasks
 
+import com.squareup.moshi.Moshi
 import org.matrix.android.sdk.internal.crypto.api.CryptoApi
 import org.matrix.android.sdk.internal.crypto.model.rest.CreateDehydratedDeviceResponse
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
 import org.matrix.android.sdk.internal.network.executeRequest
 import org.matrix.android.sdk.internal.task.Task
+import org.matrix.rustcomponents.sdk.crypto.UploadDehydratedDeviceRequest
 import javax.inject.Inject
 
 //Added for Circles
-internal interface CreateDehydratedDeviceTask : Task<String, CreateDehydratedDeviceResponse>
+internal interface CreateDehydratedDeviceTask : Task<UploadDehydratedDeviceRequest, CreateDehydratedDeviceResponse>
 
 internal class DefaultCreateDehydratedDeviceTask @Inject constructor(
         private val cryptoApi: CryptoApi,
-        private val globalErrorReceiver: GlobalErrorReceiver
+        private val globalErrorReceiver: GlobalErrorReceiver,
+        private val moshi: Moshi
 ) : CreateDehydratedDeviceTask {
 
-    override suspend fun execute(params: String): CreateDehydratedDeviceResponse {
+    override suspend fun execute(params: UploadDehydratedDeviceRequest): CreateDehydratedDeviceResponse {
         return executeRequest(globalErrorReceiver) {
-            cryptoApi.createDehydratedDevice(params)
+            val paramsAdapter = moshi.adapter<Map<String, Any>>(Map::class.java)
+            val body = paramsAdapter.fromJson(params.body)
+            cryptoApi.createDehydratedDevice(body)
         }
     }
 }

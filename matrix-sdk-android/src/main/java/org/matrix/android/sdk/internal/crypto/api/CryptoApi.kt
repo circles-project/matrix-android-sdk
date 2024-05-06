@@ -176,6 +176,6 @@ internal interface CryptoApi {
     //Added for Circles
     @PUT(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "org.matrix.msc3814.v1/dehydrated_device")
     suspend fun createDehydratedDevice(
-            @Body params: String
+            @Body params: Map<String, @JvmSuppressWildcards Any>?
     ): CreateDehydratedDeviceResponse
 }

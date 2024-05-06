@@ -938,7 +938,7 @@ internal class RustCryptoService @Inject constructor(
             dehydratedDevice.keysForUpload("dehydrated_circles_android", pickleKey)
         }
         val dehydratedDeviceIdResponse = withContext(coroutineDispatchers.io) {
-            createDehydratedDeviceTask.execute(request.body)
+            createDehydratedDeviceTask.execute(request)
         }
         return dehydratedDeviceIdResponse.deviceId
     }
