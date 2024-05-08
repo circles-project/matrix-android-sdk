@@ -78,7 +78,6 @@ import org.matrix.android.sdk.internal.crypto.network.OutgoingRequestsProcessor
 import org.matrix.android.sdk.internal.crypto.repository.WarnOnUnknownDeviceRepository
 import org.matrix.android.sdk.internal.crypto.store.IMXCommonCryptoStore
 import org.matrix.android.sdk.internal.crypto.store.db.CryptoStoreAggregator
-import org.matrix.android.sdk.internal.crypto.tasks.CreateDehydratedDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.DeleteDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.GetDeviceInfoTask
 import org.matrix.android.sdk.internal.crypto.tasks.GetDevicesTask
@@ -136,8 +135,7 @@ internal class RustCryptoService @Inject constructor(
         private val getRoomUserIds: GetRoomUserIdsUseCase,
         private val outgoingRequestsProcessor: OutgoingRequestsProcessor,
         private val matrixConfiguration: MatrixConfiguration,
-        private val perSessionBackupQueryRateLimiter: PerSessionBackupQueryRateLimiter,
-        private val createDehydratedDeviceTask: CreateDehydratedDeviceTask
+        private val perSessionBackupQueryRateLimiter: PerSessionBackupQueryRateLimiter
 ) : CryptoService {
 
     private val isStarting = AtomicBoolean(false)
@@ -928,19 +926,6 @@ internal class RustCryptoService @Inject constructor(
                 outgoingRequestsProcessor.processOutgoingRequests(olmMachine)
             }
         }
-    }
-
-    //Created for Circles
-    override suspend fun createDehydratedDevice(pickleKey: ByteArray): String? {
-        val request = withContext(coroutineDispatchers.crypto) {
-            val innerOlm = olmMachine.inner()
-            val dehydratedDevice = innerOlm.dehydratedDevices().create()
-            dehydratedDevice.keysForUpload("dehydrated_circles_android", pickleKey)
-        }
-        val dehydratedDeviceIdResponse = withContext(coroutineDispatchers.io) {
-            createDehydratedDeviceTask.execute(request)
-        }
-        return dehydratedDeviceIdResponse.deviceId
     }
 
     companion object {
