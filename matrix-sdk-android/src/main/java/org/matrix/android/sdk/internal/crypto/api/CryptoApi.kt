@@ -22,6 +22,7 @@ import org.matrix.android.sdk.internal.crypto.model.rest.CreateDehydratedDeviceR
 import org.matrix.android.sdk.internal.crypto.model.rest.DehydratedDeviceEventsResponse
 import org.matrix.android.sdk.internal.crypto.model.rest.DeleteDeviceParams
 import org.matrix.android.sdk.internal.crypto.model.rest.DeleteDevicesParams
+import org.matrix.android.sdk.internal.crypto.model.rest.GetDehydratedDeviceEventsRequestParams
 import org.matrix.android.sdk.internal.crypto.model.rest.GetDehydratedDeviceResponse
 import org.matrix.android.sdk.internal.crypto.model.rest.KeyChangesResponse
 import org.matrix.android.sdk.internal.crypto.model.rest.KeysClaimBody
@@ -188,6 +189,7 @@ internal interface CryptoApi {
     //Added for Circles
     @POST(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "org.matrix.msc3814.v1/dehydrated_device/{device_id}/events")
     suspend fun getDehydratedDeviceEvents(
-            @Path("device_id") deviceId: String
+            @Path("device_id") deviceId: String,
+            @Body params: GetDehydratedDeviceEventsRequestParams
     ): DehydratedDeviceEventsResponse
 }
