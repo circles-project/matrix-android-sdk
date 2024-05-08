@@ -72,6 +72,7 @@ import org.matrix.android.sdk.api.session.sync.model.SyncResponse
 import org.matrix.android.sdk.api.session.sync.model.ToDeviceSyncResponse
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
+import org.matrix.android.sdk.internal.crypto.dehydrated.DehydratedDevicesManager
 import org.matrix.android.sdk.internal.crypto.keysbackup.RustKeyBackupService
 import org.matrix.android.sdk.internal.crypto.model.SessionInfo
 import org.matrix.android.sdk.internal.crypto.network.OutgoingRequestsProcessor
@@ -135,7 +136,8 @@ internal class RustCryptoService @Inject constructor(
         private val getRoomUserIds: GetRoomUserIdsUseCase,
         private val outgoingRequestsProcessor: OutgoingRequestsProcessor,
         private val matrixConfiguration: MatrixConfiguration,
-        private val perSessionBackupQueryRateLimiter: PerSessionBackupQueryRateLimiter
+        private val perSessionBackupQueryRateLimiter: PerSessionBackupQueryRateLimiter,
+        private val dehydratedDevicesManager: DehydratedDevicesManager
 ) : CryptoService {
 
     private val isStarting = AtomicBoolean(false)
@@ -520,6 +522,9 @@ internal class RustCryptoService @Inject constructor(
                     }
                 }
             }
+            //Added for Circles
+            //Try to get keys from dehydrated device to decrypt
+            dehydratedDevicesManager.handleDehydratedDevice()
             throw mxCryptoError
         }
     }
