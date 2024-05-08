@@ -7,6 +7,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.crypto.MEGOLM_DEFAULT_ROTATION_PERIOD_MS
+import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.extractCurveKeyFromRecoveryKey
 import org.matrix.android.sdk.internal.crypto.OlmMachine
@@ -41,7 +42,7 @@ internal class DehydratedDevicesManager @Inject constructor(
             val ssKey = getKey()
             val existingDehydratedDevice = getDehydratedDevice()
             Timber.tag(LOG_TAG).d("existing device $existingDehydratedDevice")
-            existingDehydratedDevice.deviceId?.let { deviceId ->
+            existingDehydratedDevice?.deviceId?.let { deviceId ->
                 rehydrateDevice(ssKey, deviceId, existingDehydratedDevice.deviceData)
             }
             createDehydratedDevice(ssKey)
@@ -95,9 +96,11 @@ internal class DehydratedDevicesManager @Inject constructor(
         }
     }
 
-    private suspend fun getDehydratedDevice(): GetDehydratedDeviceResponse {
-        return withContext(coroutineDispatchers.io) {
-            getDehydratedDeviceTask.execute(Unit)
+    private suspend fun getDehydratedDevice(): GetDehydratedDeviceResponse? {
+        return tryOrNull {
+            withContext(coroutineDispatchers.io) {
+                getDehydratedDeviceTask.execute(Unit)
+            }
         }
     }
 
