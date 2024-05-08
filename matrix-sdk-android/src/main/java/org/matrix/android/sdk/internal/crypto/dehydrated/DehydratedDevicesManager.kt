@@ -1,6 +1,8 @@
 package org.matrix.android.sdk.internal.crypto.dehydrated
 
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
+import org.json.JSONObject
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.crypto.keysbackup.extractCurveKeyFromRecoveryKey
@@ -24,21 +26,25 @@ internal class DehydratedDevicesManager @Inject constructor(
         private val getDehydratedDeviceTask: GetDehydratedDeviceTask,
         private val getDehydratedDeviceEventsTask: GetDehydratedDeviceEventsTask
 ) {
+    private var isDehydrationRunning = false
     private val tag = "DehydratedDevice"
 
     suspend fun handleDehydratedDevice() {
+        if (isDehydrationRunning) return
+        isDehydrationRunning = true
         try {
             Timber.tag(tag).d("start")
             val ssKey = getKey()
             val existingDehydratedDevice = getDehydratedDevice()
             Timber.tag(tag).d("existing device $existingDehydratedDevice")
             existingDehydratedDevice.deviceId?.let { deviceId ->
-                rehydrateDevice(ssKey, deviceId, existingDehydratedDevice.deviceData.toString())
+                rehydrateDevice(ssKey, deviceId, existingDehydratedDevice.deviceData)
             }
             createDehydratedDevice(ssKey)
         } catch (e: Exception) {
             Timber.tag(tag).d("$e")
         }
+        isDehydrationRunning = false
     }
 
     private suspend fun getKey(): ByteArray {
@@ -50,9 +56,10 @@ internal class DehydratedDevicesManager @Inject constructor(
         return secret
     }
 
-    private suspend fun rehydrateDevice(pickleKey: ByteArray, deviceId: String, deviceData: String) {
+    private suspend fun rehydrateDevice(pickleKey: ByteArray, deviceId: String, deviceData: Map<String, String>) {
+        val deviceDataJson = JSONObject(deviceData).toString()
         val rehydrator = withContext(coroutineDispatchers.crypto) {
-            olmMachine.inner().dehydratedDevices().rehydrate(pickleKey, deviceId, deviceData)
+            olmMachine.inner().dehydratedDevices().rehydrate(pickleKey, deviceId, deviceDataJson)
         }
         Timber.tag(tag).d("created rehydrator")
         var nextBatchToken = ""
@@ -64,7 +71,8 @@ internal class DehydratedDevicesManager @Inject constructor(
                 if (eventsResponse.events.isEmpty()) break
 
                 nextBatchToken = eventsResponse.nextBatch ?: ""
-                rehydrator.receiveEvents(eventsResponse.events.toString())
+                val eventsJson = JSONArray(eventsResponse.events).toString()
+                rehydrator.receiveEvents(eventsJson)
             }
         }
     }
