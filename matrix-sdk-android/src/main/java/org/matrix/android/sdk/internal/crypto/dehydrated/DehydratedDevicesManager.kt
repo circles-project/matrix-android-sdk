@@ -8,7 +8,7 @@ import org.json.JSONObject
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.crypto.MEGOLM_DEFAULT_ROTATION_PERIOD_MS
 import org.matrix.android.sdk.api.extensions.tryOrNull
-import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupService
 import org.matrix.android.sdk.api.session.crypto.keysbackup.extractCurveKeyFromRecoveryKey
 import org.matrix.android.sdk.internal.crypto.OlmMachine
 import org.matrix.android.sdk.internal.crypto.model.rest.DehydratedDeviceEventsResponse
@@ -23,13 +23,13 @@ import javax.inject.Inject
 //Added for Circles
 internal class DehydratedDevicesManager @Inject constructor(
         context: Context,
-        private val session: Session,
         @DeviceId private val myDeviceId: String,
         private val olmMachine: OlmMachine,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
         private val createDehydratedDeviceTask: CreateDehydratedDeviceTask,
         private val getDehydratedDeviceTask: GetDehydratedDeviceTask,
-        private val getDehydratedDeviceEventsTask: GetDehydratedDeviceEventsTask
+        private val getDehydratedDeviceEventsTask: GetDehydratedDeviceEventsTask,
+        private val keysBackupService: KeysBackupService
 ) {
     private var isDehydrationRunning = false
     private val sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -67,8 +67,7 @@ internal class DehydratedDevicesManager @Inject constructor(
     private fun getLastDehydrationTimeKey(): String = DEHYDRATION_TIME_PREFIX + myDeviceId
 
     private suspend fun getKey(): ByteArray {
-        val recoveryKey = session.cryptoService().keysBackupService()
-                .getKeyBackupRecoveryKeyInfo()?.recoveryKey?.toBase58()
+        val recoveryKey = keysBackupService.getKeyBackupRecoveryKeyInfo()?.recoveryKey?.toBase58()
                 ?: throw Exception("Recovery Key not found")
         val secret = extractCurveKeyFromRecoveryKey(recoveryKey)
                 ?: throw Exception("Can not get secret from recovery key")
