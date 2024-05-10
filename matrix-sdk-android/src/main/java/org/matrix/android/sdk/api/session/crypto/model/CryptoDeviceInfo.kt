@@ -28,7 +28,8 @@ data class CryptoDeviceInfo(
         val unsigned: UnsignedDeviceInfo? = null,
         var trustLevel: DeviceTrustLevel? = null,
         val isBlocked: Boolean = false,
-        val firstTimeSeenLocalTs: Long? = null
+        val firstTimeSeenLocalTs: Long? = null,
+        val isDehydrated: Boolean = false
 ) : CryptoInfo {
 
     val isVerified: Boolean
