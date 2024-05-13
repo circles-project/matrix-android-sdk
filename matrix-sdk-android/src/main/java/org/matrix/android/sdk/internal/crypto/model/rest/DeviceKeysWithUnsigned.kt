@@ -28,9 +28,6 @@ internal data class DeviceKeysWithUnsigned(
         @Json(name = "user_id")
         val userId: String,
 
-        @Json(name = "dehydrated")
-        val isDehydrated: Boolean = false,
-
         /**
          * Required. The ID of the device these keys belong to. Must match the device ID used when logging in.
          */
@@ -61,5 +58,8 @@ internal data class DeviceKeysWithUnsigned(
          * Additional data added to the device key information by intermediate servers, and not covered by the signatures.
          */
         @Json(name = "unsigned")
-        val unsigned: UnsignedDeviceInfo? = null
+        val unsigned: UnsignedDeviceInfo? = null,
+
+        @Json(name = "dehydrated")
+        val isDehydrated: Boolean? = null
 )

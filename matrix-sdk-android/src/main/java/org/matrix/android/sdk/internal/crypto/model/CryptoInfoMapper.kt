@@ -32,7 +32,7 @@ internal object CryptoInfoMapper {
                 signatures = deviceKeysWithUnsigned.signatures,
                 unsigned = deviceKeysWithUnsigned.unsigned,
                 trustLevel = null,
-                isDehydrated = deviceKeysWithUnsigned.isDehydrated
+                isDehydrated = deviceKeysWithUnsigned.isDehydrated ?: false
         )
     }
 

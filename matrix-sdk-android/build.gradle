@@ -180,6 +180,7 @@ dependencies {
     api "com.squareup.moshi:moshi-adapters:$moshi"
     kapt "com.squareup.moshi:moshi-kotlin-codegen:$moshi"
 
+    //noinspection GradleDependency
     api "com.atlassian.commonmark:commonmark:0.13.0"
 
     // Image
@@ -257,7 +258,7 @@ publishing {
         release(MavenPublication) {
             groupId = "org.futo.gitlab.circles"
             artifactId = "matrix-android-sdk"
-            version = "0.1.22"
+            version = "0.1.46"
 
             afterEvaluate {
                 from components.release

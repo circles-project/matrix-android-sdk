@@ -27,9 +27,6 @@ internal data class DeviceKeys(
         @Json(name = "user_id")
         val userId: String,
 
-        @Json(name = "dehydrated")
-        val isDehydrated: Boolean = false,
-
         /**
          * Required. The ID of the device these keys belong to. Must match the device ID used when logging in.
          */
