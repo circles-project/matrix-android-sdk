@@ -155,7 +155,7 @@ dependencies {
     api 'androidx.core:core-ktx:1.13.1'
 
     // Lifecycle
-    def lifecycle = "2.7.0"
+    def lifecycle = "2.8.0"
     api "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle"
     api "androidx.lifecycle:lifecycle-common:$lifecycle"
     api "androidx.lifecycle:lifecycle-process:$lifecycle"
@@ -180,6 +180,7 @@ dependencies {
     api "com.squareup.moshi:moshi-adapters:$moshi"
     kapt "com.squareup.moshi:moshi-kotlin-codegen:$moshi"
 
+    //noinspection GradleDependency
     api "com.atlassian.commonmark:commonmark:0.13.0"
 
     // Image
@@ -216,7 +217,7 @@ dependencies {
     api 'com.googlecode.libphonenumber:libphonenumber:8.13.36'
 
     // ----- Jitpack release
-    api("org.futo.gitlab.circles:circles-rust-components-kotlin:v0.3.15.8@aar") {
+    api("org.futo.gitlab.circles:circles-rust-components-kotlin:v0.3.15.10@aar") {
         transitive = true
     }
     // ----- Maven local testing
@@ -257,7 +258,7 @@ publishing {
         release(MavenPublication) {
             groupId = "org.futo.gitlab.circles"
             artifactId = "matrix-android-sdk"
-            version = "1.6.10.36"
+            version = "1.6.10.38"
 
             afterEvaluate {
                 from components.release

@@ -59,7 +59,7 @@ internal class Device @AssistedInject constructor(
     @Throws(CryptoStoreException::class)
     private suspend fun refreshData() {
         val device = withContext(coroutineDispatchers.io) {
-            innerMachine.getDevice(innerDevice.userId, innerDevice.deviceId, 30u)
+            innerMachine.getDevice(innerDevice.userId, innerDevice.deviceId, 0u)
         }
 
         if (device != null) {
@@ -188,7 +188,8 @@ internal class Device @AssistedInject constructor(
                         locallyVerified = innerDevice.locallyTrusted
                 ),
                 isBlocked = innerDevice.isBlocked,
-                firstTimeSeenLocalTs = innerDevice.firstTimeSeenTs.toLong()
+                firstTimeSeenLocalTs = innerDevice.firstTimeSeenTs.toLong(),
+                isDehydrated = innerDevice.dehydrated
         )
     }
 }

@@ -657,14 +657,14 @@ internal class OlmMachine @Inject constructor(
     @Throws(CryptoStoreException::class)
     suspend fun getDevice(userId: String, deviceId: String): Device? {
         val innerDevice = withContext(coroutineDispatchers.io) {
-            inner.getDevice(userId, deviceId, 30u)
+            inner.getDevice(userId, deviceId, 0u)
         } ?: return null
         return deviceFactory.create(innerDevice)
     }
 
     suspend fun getUserDevices(userId: String): List<Device> {
         return withContext(coroutineDispatchers.io) {
-            inner.getUserDevices(userId, 30u).map(deviceFactory::create)
+            inner.getUserDevices(userId, 0u).map(deviceFactory::create)
         }
     }
 

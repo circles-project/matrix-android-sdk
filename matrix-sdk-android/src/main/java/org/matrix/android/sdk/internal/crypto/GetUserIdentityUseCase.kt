@@ -42,7 +42,7 @@ internal class GetUserIdentityUseCase @Inject constructor(
         val innerMachine = olmMachine.get().inner()
         val identity = try {
             withContext(coroutineDispatchers.io) {
-                innerMachine.getIdentity(userId, 30u)
+                innerMachine.getIdentity(userId, 0u)
             }
         } catch (error: CryptoStoreException) {
             Timber.w(error, "Failed to get identity for user $userId")

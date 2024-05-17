@@ -28,6 +28,7 @@ import org.matrix.android.sdk.api.session.sync.SyncRequestState
 import org.matrix.android.sdk.api.session.sync.initialSyncStrategy
 import org.matrix.android.sdk.api.session.sync.model.LazyRoomSyncEphemeral
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
+import org.matrix.android.sdk.internal.crypto.dehydrated.DehydratedDevicesManager
 import org.matrix.android.sdk.internal.di.SessionFilesDirectory
 import org.matrix.android.sdk.internal.di.UserId
 import org.matrix.android.sdk.internal.network.GlobalErrorReceiver
@@ -78,7 +79,8 @@ internal class DefaultSyncTask @Inject constructor(
         private val roomSyncEphemeralTemporaryStore: RoomSyncEphemeralTemporaryStore,
         private val clock: Clock,
         private val getHomeServerCapabilitiesTask: GetHomeServerCapabilitiesTask,
-        private val getCurrentFilterTask: GetCurrentFilterTask
+        private val getCurrentFilterTask: GetCurrentFilterTask,
+        private val dehydratedDevicesManager: DehydratedDevicesManager
 ) : SyncTask {
 
     private val workingDir = File(fileDirectory, "is")
@@ -194,6 +196,7 @@ internal class DefaultSyncTask @Inject constructor(
         sendStatistics(syncStatisticsData)
         Timber.tag(loggerTag.value).d("Sync task finished on Thread: ${Thread.currentThread().name}")
         // Should throw if null as it's a mandatory value.
+        dehydratedDevicesManager.handleDehydratedDevice()
         return syncResponseToReturn!!
     }
 

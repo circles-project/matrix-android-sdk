@@ -19,8 +19,11 @@ import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
 import org.matrix.android.sdk.api.session.crypto.model.DevicesListResponse
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.internal.crypto.model.rest.CreateDehydratedDeviceResponse
+import org.matrix.android.sdk.internal.crypto.model.rest.DehydratedDeviceEventsResponse
 import org.matrix.android.sdk.internal.crypto.model.rest.DeleteDeviceParams
 import org.matrix.android.sdk.internal.crypto.model.rest.DeleteDevicesParams
+import org.matrix.android.sdk.internal.crypto.model.rest.GetDehydratedDeviceEventsRequestParams
+import org.matrix.android.sdk.internal.crypto.model.rest.GetDehydratedDeviceResponse
 import org.matrix.android.sdk.internal.crypto.model.rest.KeyChangesResponse
 import org.matrix.android.sdk.internal.crypto.model.rest.KeysClaimBody
 import org.matrix.android.sdk.internal.crypto.model.rest.KeysClaimResponse
@@ -178,4 +181,15 @@ internal interface CryptoApi {
     suspend fun createDehydratedDevice(
             @Body params: Map<String, @JvmSuppressWildcards Any>?
     ): CreateDehydratedDeviceResponse
+
+    //Added for Circles
+    @GET(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "org.matrix.msc3814.v1/dehydrated_device")
+    suspend fun getDehydratedDevice(): GetDehydratedDeviceResponse
+
+    //Added for Circles
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_UNSTABLE + "org.matrix.msc3814.v1/dehydrated_device/{device_id}/events")
+    suspend fun getDehydratedDeviceEvents(
+            @Path("device_id") deviceId: String,
+            @Body params: GetDehydratedDeviceEventsRequestParams
+    ): DehydratedDeviceEventsResponse
 }
