@@ -62,16 +62,20 @@ internal class DefaultProfileService @Inject constructor(
         return Optional.from(displayName)
     }
 
-    override suspend fun setDisplayName(userId: String, newDisplayName: String) {
+    override suspend fun setDisplayName(userId: String, newDisplayName: String, propagateUpdate: Boolean) {
         withContext(coroutineDispatchers.io) {
-            setDisplayNameTask.execute(SetDisplayNameTask.Params(userId = userId, newDisplayName = newDisplayName))
+            setDisplayNameTask.execute(SetDisplayNameTask.Params(
+                    userId = userId, newDisplayName = newDisplayName, propagateUpdate = propagateUpdate
+            ))
             userStore.updateDisplayName(userId, newDisplayName)
         }
     }
 
-    override suspend fun updateAvatar(userId: String, newAvatarUri: Uri, fileName: String) {
+    override suspend fun updateAvatar(userId: String, newAvatarUri: Uri, fileName: String, propagateUpdate: Boolean) {
         val response = fileUploader.uploadFromUri(newAvatarUri, fileName, MimeTypes.Jpeg)
-        setAvatarUrlTask.execute(SetAvatarUrlTask.Params(userId = userId, newAvatarUrl = response.contentUri))
+        setAvatarUrlTask.execute(SetAvatarUrlTask.Params(
+                userId = userId, newAvatarUrl = response.contentUri, propagateUpdate = propagateUpdate
+        ))
         userStore.updateAvatar(userId, response.contentUri)
     }
 

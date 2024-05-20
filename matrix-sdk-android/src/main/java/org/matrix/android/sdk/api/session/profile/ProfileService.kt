@@ -46,16 +46,18 @@ interface ProfileService {
      * Update the display name for this user.
      * @param userId the userId to update the display name of
      * @param newDisplayName the new display name of the user
+     * Changed for Circles - propagateUpdate
      */
-    suspend fun setDisplayName(userId: String, newDisplayName: String)
+    suspend fun setDisplayName(userId: String, newDisplayName: String, propagateUpdate: Boolean)
 
     /**
      * Update the avatar for this user.
      * @param userId the userId to update the avatar of
      * @param newAvatarUri the new avatar uri of the user
      * @param fileName the fileName of selected image
+     * Changed for Circles - propagateUpdate
      */
-    suspend fun updateAvatar(userId: String, newAvatarUri: Uri, fileName: String)
+    suspend fun updateAvatar(userId: String, newAvatarUri: Uri, fileName: String, propagateUpdate: Boolean)
 
     /**
      * Return the current avatarUrl for this user.
