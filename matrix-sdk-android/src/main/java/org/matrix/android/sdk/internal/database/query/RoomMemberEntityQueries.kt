@@ -34,12 +34,14 @@ internal fun RoomMemberSummaryEntity.Companion.where(realm: Realm, roomId: Strin
     return query
 }
 
+//Changed for circles - avatarUrl, display name update
 internal fun RoomMemberSummaryEntity.Companion.updateUserPresence(realm: Realm, userId: String, userPresenceEntity: UserPresenceEntity) {
     realm.where<RoomMemberSummaryEntity>()
             .equalTo(RoomMemberSummaryEntityFields.USER_ID, userId)
-            .isNull(RoomMemberSummaryEntityFields.USER_PRESENCE_ENTITY.`$`)
             .findAll()
-            .map {
-                it.userPresenceEntity = userPresenceEntity
+            .map { memberSummaryEntety ->
+                userPresenceEntity.avatarUrl?.let { memberSummaryEntety.avatarUrl = it }
+                userPresenceEntity.displayName?.let { memberSummaryEntety.displayName = it }
+                memberSummaryEntety.userPresenceEntity = userPresenceEntity
             }
 }
