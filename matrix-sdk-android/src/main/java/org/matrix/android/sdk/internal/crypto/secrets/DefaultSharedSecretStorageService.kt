@@ -42,6 +42,7 @@ import org.matrix.android.sdk.api.session.securestorage.SsssKeySpec
 import org.matrix.android.sdk.api.session.securestorage.SsssPassphrase
 import org.matrix.android.sdk.api.util.fromBase64
 import org.matrix.android.sdk.api.util.toBase64NoPadding
+import org.matrix.android.sdk.internal.crypto.CirclesKeystoreProvider
 import org.matrix.android.sdk.internal.crypto.SecretShareManager
 import org.matrix.android.sdk.internal.crypto.keysbackup.generatePrivateKeyWithPassword
 import org.matrix.android.sdk.internal.crypto.tools.HkdfSha256
@@ -61,7 +62,8 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
         private val accountDataService: SessionAccountDataService,
         private val secretShareManager: SecretShareManager,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
-        private val cryptoCoroutineScope: CoroutineScope
+        private val cryptoCoroutineScope: CoroutineScope,
+        private val circlesKeystoreProvider: CirclesKeystoreProvider
 ) : SharedSecretStorageService {
 
     override suspend fun generateKey(
@@ -426,4 +428,12 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
             )
         }
     }
+
+    //Added for Circles
+    override fun storeBsSpekePrivateKey(keyBytes: ByteArray, keyId: String) {
+        circlesKeystoreProvider.storeBsSpekePrivateKey(keyBytes, keyId)
+    }
+
+    //Added for Circles
+    override fun getBsSpekePrivateKey(keyId: String): ByteArray? = circlesKeystoreProvider.getBsSpekePrivateKey(keyId)
 }
