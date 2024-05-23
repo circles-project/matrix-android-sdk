@@ -203,9 +203,10 @@ internal class SyncResponseHandler @Inject constructor(
         measureSpan("task", "monarchy_transaction") {
             monarchy.awaitTransaction { realm ->
                 // IMPORTANT nothing should be suspend here as we are accessing the realm instance (thread local)
+                // Changed for Circles. Need to handle presence first to get latest user's info first
+                handlePresence(realm, syncResponse)
                 handleRooms(reporter, syncResponse, realm, isInitialSync, aggregator)
                 handleAccountData(reporter, realm, syncResponse)
-                handlePresence(realm, syncResponse)
 
                 tokenStore.saveToken(realm, syncResponse.nextBatch)
             }
