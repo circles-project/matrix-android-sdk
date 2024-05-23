@@ -8,8 +8,12 @@ import org.json.JSONObject
 import org.matrix.android.sdk.api.MatrixCoroutineDispatchers
 import org.matrix.android.sdk.api.crypto.MEGOLM_DEFAULT_ROTATION_PERIOD_MS
 import org.matrix.android.sdk.api.extensions.tryOrNull
-import org.matrix.android.sdk.api.session.crypto.keysbackup.KeysBackupService
-import org.matrix.android.sdk.api.session.crypto.keysbackup.extractCurveKeyFromRecoveryKey
+import org.matrix.android.sdk.api.session.securestorage.KeyInfoResult
+import org.matrix.android.sdk.api.session.securestorage.KeyRef
+import org.matrix.android.sdk.api.session.securestorage.RawBytesKeySpec
+import org.matrix.android.sdk.api.session.securestorage.SharedSecretStorageService
+import org.matrix.android.sdk.api.util.fromBase64
+import org.matrix.android.sdk.api.util.toBase64NoPadding
 import org.matrix.android.sdk.internal.crypto.OlmMachine
 import org.matrix.android.sdk.internal.crypto.model.rest.DehydratedDeviceEventsResponse
 import org.matrix.android.sdk.internal.crypto.model.rest.GetDehydratedDeviceResponse
@@ -18,6 +22,7 @@ import org.matrix.android.sdk.internal.crypto.tasks.GetDehydratedDeviceEventsTas
 import org.matrix.android.sdk.internal.crypto.tasks.GetDehydratedDeviceTask
 import org.matrix.android.sdk.internal.di.DeviceId
 import timber.log.Timber
+import java.security.SecureRandom
 import javax.inject.Inject
 
 //Added for Circles
@@ -29,7 +34,7 @@ internal class DehydratedDevicesManager @Inject constructor(
         private val createDehydratedDeviceTask: CreateDehydratedDeviceTask,
         private val getDehydratedDeviceTask: GetDehydratedDeviceTask,
         private val getDehydratedDeviceEventsTask: GetDehydratedDeviceEventsTask,
-        private val keysBackupService: KeysBackupService
+        private val ssssService: SharedSecretStorageService
 ) {
     private var isDehydrationRunning = false
     private val sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -39,13 +44,13 @@ internal class DehydratedDevicesManager @Inject constructor(
             if (isDehydrationRunning || isDeviceDehydrationRequired().not()) return
             isDehydrationRunning = true
             Timber.tag(LOG_TAG).d("start")
-            val ssKey = getKey()
+            val ssPickleKey = getPickleKey()
             val existingDehydratedDevice = getDehydratedDevice()
             Timber.tag(LOG_TAG).d("existing device $existingDehydratedDevice")
             existingDehydratedDevice?.deviceId?.let { deviceId ->
-                rehydrateDevice(ssKey, deviceId, existingDehydratedDevice.deviceData)
+                rehydrateDevice(ssPickleKey, deviceId, existingDehydratedDevice.deviceData)
             }
-            createDehydratedDevice(ssKey)
+            createDehydratedDevice(ssPickleKey)
             saveLastDehydrationTime()
             Timber.tag(LOG_TAG).d("dehydration time ${System.currentTimeMillis()}")
         } catch (e: Exception) {
@@ -66,12 +71,13 @@ internal class DehydratedDevicesManager @Inject constructor(
 
     private fun getLastDehydrationTimeKey(): String = DEHYDRATION_TIME_PREFIX + myDeviceId
 
-    private suspend fun getKey(): ByteArray {
-        val recoveryKey = keysBackupService.getKeyBackupRecoveryKeyInfo()?.recoveryKey?.toBase58()
-                ?: throw Exception("Recovery Key not found")
-        val secret = extractCurveKeyFromRecoveryKey(recoveryKey)
-                ?: throw Exception("Can not get secret from recovery key")
-        return secret
+    private suspend fun getPickleKey(): ByteArray {
+        val defaultKeyId = (ssssService.getDefaultKey() as? KeyInfoResult.Success)?.keyInfo?.id
+                ?: throw IllegalStateException("Default key not found")
+        val bsSpekeKey = ssssService.getBsSpekePrivateKey(defaultKeyId)
+                ?: throw IllegalStateException("BsSpeke key not found")
+        return getDehydratedDeviceKey(defaultKeyId, bsSpekeKey)
+                ?: generateAndStoreDehydratedDeviceKey(defaultKeyId, bsSpekeKey)
     }
 
     private suspend fun rehydrateDevice(pickleKey: ByteArray, deviceId: String, deviceData: Map<String, String>) {
@@ -124,7 +130,26 @@ internal class DehydratedDevicesManager @Inject constructor(
         return dehydratedDeviceIdResponse.deviceId
     }
 
+    private suspend fun getDehydratedDeviceKey(defaultKeyId: String, bsSpekeKey: ByteArray): ByteArray? = tryOrNull {
+        ssssService.getSecret(
+                name = ORG_FUTO_SSSS_KEY_DEHYDRATED_DEVICE,
+                keyId = defaultKeyId,
+                secretKey = RawBytesKeySpec(bsSpekeKey)
+        ).fromBase64()
+    }
+
+    private suspend fun generateAndStoreDehydratedDeviceKey(defaultKeyId: String, bsSpekeKey: ByteArray): ByteArray {
+        val bytes = ByteArray(32).also { SecureRandom().nextBytes(it) }
+        ssssService.storeSecret(
+                name = ORG_FUTO_SSSS_KEY_DEHYDRATED_DEVICE,
+                secretBase64 = bytes.toBase64NoPadding(),
+                keys = listOf(KeyRef(defaultKeyId, RawBytesKeySpec(bsSpekeKey)))
+        )
+        return bytes
+    }
+
     companion object {
+        private const val ORG_FUTO_SSSS_KEY_DEHYDRATED_DEVICE = "org.futo.ssss.key.dehydrated_device"
         private const val LOG_TAG = "DehydratedDevice"
         private const val PREF_NAME = "org.futo.circles.dehydrated"
         private const val DEHYDRATION_TIME_PREFIX = "last_device_dehydration_"
