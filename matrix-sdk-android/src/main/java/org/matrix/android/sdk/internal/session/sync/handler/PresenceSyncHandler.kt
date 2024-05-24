@@ -21,13 +21,13 @@ import org.matrix.android.sdk.api.MatrixConfiguration
 import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.getPresenceContent
 import org.matrix.android.sdk.api.session.sync.model.PresenceSyncResponse
-import org.matrix.android.sdk.api.session.user.model.User
 import org.matrix.android.sdk.internal.database.model.RoomMemberSummaryEntity
 import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
+import org.matrix.android.sdk.internal.database.model.UserEntity
 import org.matrix.android.sdk.internal.database.model.presence.UserPresenceEntity
 import org.matrix.android.sdk.internal.database.query.updateDirectUserPresence
+import org.matrix.android.sdk.internal.database.query.updateUser
 import org.matrix.android.sdk.internal.database.query.updateUserPresence
-import org.matrix.android.sdk.internal.session.user.UserEntityFactory
 import javax.inject.Inject
 
 internal class PresenceSyncHandler @Inject constructor(private val matrixConfiguration: MatrixConfiguration) {
@@ -59,11 +59,10 @@ internal class PresenceSyncHandler @Inject constructor(private val matrixConfigu
      */
     private fun storePresenceToDB(realm: Realm, userPresenceEntity: UserPresenceEntity) {
         val userId = userPresenceEntity.userId
-        val updatedPresence = realm.copyToRealmOrUpdate(userPresenceEntity)?.apply {
+        realm.copyToRealmOrUpdate(userPresenceEntity)?.apply {
             RoomSummaryEntity.updateDirectUserPresence(realm, userId, this)
             RoomMemberSummaryEntity.updateUserPresence(realm, userId, this)
+            UserEntity.Companion.updateUser(realm, userId, this)
         }
-        val userEntity = UserEntityFactory.create(User(userId, updatedPresence?.displayName, userPresenceEntity.avatarUrl))
-        realm.insertOrUpdate(userEntity)
     }
 }
