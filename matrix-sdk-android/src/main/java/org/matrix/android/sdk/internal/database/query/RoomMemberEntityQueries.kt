@@ -21,6 +21,8 @@ import io.realm.RealmQuery
 import io.realm.kotlin.where
 import org.matrix.android.sdk.internal.database.model.RoomMemberSummaryEntity
 import org.matrix.android.sdk.internal.database.model.RoomMemberSummaryEntityFields
+import org.matrix.android.sdk.internal.database.model.UserEntityFields
+import org.matrix.android.sdk.internal.database.model.UserEntity
 import org.matrix.android.sdk.internal.database.model.presence.UserPresenceEntity
 
 internal fun RoomMemberSummaryEntity.Companion.where(realm: Realm, roomId: String, userId: String? = null): RealmQuery<RoomMemberSummaryEntity> {
@@ -34,12 +36,26 @@ internal fun RoomMemberSummaryEntity.Companion.where(realm: Realm, roomId: Strin
     return query
 }
 
+//Changed for circles - avatarUrl, display name update
 internal fun RoomMemberSummaryEntity.Companion.updateUserPresence(realm: Realm, userId: String, userPresenceEntity: UserPresenceEntity) {
     realm.where<RoomMemberSummaryEntity>()
             .equalTo(RoomMemberSummaryEntityFields.USER_ID, userId)
             .isNull(RoomMemberSummaryEntityFields.USER_PRESENCE_ENTITY.`$`)
             .findAll()
-            .map {
-                it.userPresenceEntity = userPresenceEntity
+            .map { memberSummaryEntity ->
+                userPresenceEntity.avatarUrl?.let { memberSummaryEntity.avatarUrl = it }
+                userPresenceEntity.displayName?.let { memberSummaryEntity.displayName = it }
+                memberSummaryEntity.userPresenceEntity = userPresenceEntity
+            }
+}
+
+//Added for Circles
+internal fun UserEntity.Companion.updateUser(realm: Realm, userId: String, userPresenceEntity: UserPresenceEntity) {
+    realm.where<UserEntity>()
+            .equalTo(UserEntityFields.USER_ID, userId)
+            .findAll()
+            .map { userEntity ->
+                userPresenceEntity.avatarUrl?.let { userEntity.avatarUrl = it }
+                userPresenceEntity.displayName?.let { userEntity.displayName = it }
             }
 }

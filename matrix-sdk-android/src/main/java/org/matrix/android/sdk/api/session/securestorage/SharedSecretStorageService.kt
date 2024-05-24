@@ -149,4 +149,10 @@ interface SharedSecretStorageService {
             privateKey: ByteArray,
             keySigner: KeySigner
     ): SsssKeyCreationInfo
+
+    //Added for Circles
+    fun storeBsSpekePrivateKey(keyBytes: ByteArray, keyId: String)
+
+    //Added for Circles
+    fun getBsSpekePrivateKey(keyId: String): ByteArray?
 }

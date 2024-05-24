@@ -19,10 +19,16 @@ package org.matrix.android.sdk.internal.database.mapper
 import org.matrix.android.sdk.api.session.events.model.Event
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.internal.database.RealmSessionProvider
 import org.matrix.android.sdk.internal.database.model.TimelineEventEntity
+import org.matrix.android.sdk.internal.database.model.UserEntity
+import org.matrix.android.sdk.internal.database.query.where
 import javax.inject.Inject
 
-internal class TimelineEventMapper @Inject constructor(private val readReceiptsSummaryMapper: ReadReceiptsSummaryMapper) {
+internal class TimelineEventMapper @Inject constructor(
+        private val readReceiptsSummaryMapper: ReadReceiptsSummaryMapper,
+        private val realmSessionProvider: RealmSessionProvider
+) {
 
     fun map(timelineEventEntity: TimelineEventEntity, buildReadReceipts: Boolean = true): TimelineEvent {
         val readReceipts = if (buildReadReceipts) {
@@ -40,12 +46,7 @@ internal class TimelineEventMapper @Inject constructor(private val readReceiptsS
                 annotations = timelineEventEntity.annotations?.asDomain(),
                 localId = timelineEventEntity.localId,
                 displayIndex = timelineEventEntity.displayIndex,
-                senderInfo = SenderInfo(
-                        userId = timelineEventEntity.root?.sender ?: "",
-                        displayName = timelineEventEntity.senderName,
-                        isUniqueDisplayName = timelineEventEntity.isUniqueDisplayName,
-                        avatarUrl = timelineEventEntity.senderAvatar
-                ),
+                senderInfo = getSenderInfoFromPresenceUpdate(timelineEventEntity),
                 ownedByThreadChunk = timelineEventEntity.ownedByThreadChunk,
                 readReceipts = readReceipts
                         ?.distinctBy {
@@ -53,6 +54,21 @@ internal class TimelineEventMapper @Inject constructor(private val readReceiptsS
                         }?.sortedByDescending {
                             it.originServerTs
                         }.orEmpty()
+        )
+    }
+
+    //Added for Circles
+    private fun getSenderInfoFromPresenceUpdate(timelineEventEntity: TimelineEventEntity): SenderInfo {
+        val senderId = timelineEventEntity.root?.sender ?: ""
+        val user = realmSessionProvider.withRealm {
+            val userEntity = UserEntity.where(it, senderId).findFirst()
+            userEntity?.asDomain()
+        }
+        return SenderInfo(
+                userId = senderId,
+                displayName = user?.displayName ?: timelineEventEntity.senderName,
+                isUniqueDisplayName = timelineEventEntity.isUniqueDisplayName,
+                avatarUrl = user?.avatarUrl ?: timelineEventEntity.senderAvatar
         )
     }
 }

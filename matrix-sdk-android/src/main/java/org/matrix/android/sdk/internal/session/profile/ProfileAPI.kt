@@ -26,6 +26,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 import retrofit2.http.Url
 
 internal interface ProfileAPI {
@@ -51,6 +52,7 @@ internal interface ProfileAPI {
     @PUT(NetworkConstants.URI_API_PREFIX_PATH_R0 + "profile/{userId}/displayname")
     suspend fun setDisplayName(
             @Path("userId") userId: String,
+            @Query("org.matrix.msc4069.propagate") propagate: Boolean,
             @Body body: SetDisplayNameBody
     )
 
@@ -60,6 +62,7 @@ internal interface ProfileAPI {
     @PUT(NetworkConstants.URI_API_PREFIX_PATH_R0 + "profile/{userId}/avatar_url")
     suspend fun setAvatarUrl(
             @Path("userId") userId: String,
+            @Query("org.matrix.msc4069.propagate") propagate: Boolean,
             @Body body: SetAvatarUrlBody
     )
 

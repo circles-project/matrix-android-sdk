@@ -24,7 +24,8 @@ import javax.inject.Inject
 internal abstract class SetDisplayNameTask : Task<SetDisplayNameTask.Params, Unit> {
     data class Params(
             val userId: String,
-            val newDisplayName: String
+            val newDisplayName: String,
+            val propagateUpdate: Boolean
     )
 }
 
@@ -38,7 +39,7 @@ internal class DefaultSetDisplayNameTask @Inject constructor(
                 displayName = params.newDisplayName
         )
         return executeRequest(globalErrorReceiver) {
-            profileAPI.setDisplayName(params.userId, body)
+            profileAPI.setDisplayName(params.userId, params.propagateUpdate, body)
         }
     }
 }
