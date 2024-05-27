@@ -92,12 +92,11 @@ internal class DefaultSendService @AssistedInject constructor(
     }
 
     //Changed for Circles
-    override fun sendTextMessage(text: CharSequence, msgType: String, autoMarkdown: Boolean, additionalContent: Content?): Pair<String, Cancelable> {
+    override fun sendTextMessage(text: CharSequence, msgType: String, autoMarkdown: Boolean, additionalContent: Content?): String {
         val event = localEchoEventFactory.createTextEvent(roomId, msgType, text, autoMarkdown, additionalContent)
         createLocalEcho(event)
-        val localId = event.eventId ?: ""
-        val cancelable = sendEvent(event)
-        return localId to cancelable
+        sendEvent(event)
+        return event.eventId ?: ""
     }
 
     override fun sendFormattedTextMessage(text: String, formattedText: String, msgType: String, additionalContent: Content?): Cancelable {
@@ -127,12 +126,12 @@ internal class DefaultSendService @AssistedInject constructor(
                 .let { sendEvent(it) }
     }
 
-    override fun sendPoll(pollType: PollType, question: String, options: List<String>, additionalContent: Content?): Pair<String, Cancelable> {
+    //Changed for Circles
+    override fun sendPoll(pollType: PollType, question: String, options: List<String>, additionalContent: Content?): String {
         val localEvent = localEchoEventFactory.createPollEvent(roomId, pollType, question, options, additionalContent)
         createLocalEcho(localEvent)
-        val localId = localEvent.eventId ?: ""
-        val cancelable = sendEvent(localEvent)
-        return localId to cancelable
+        sendEvent(localEvent)
+        return localEvent.eventId ?: ""
     }
 
     override fun voteToPoll(pollEventId: String, answerId: String, additionalContent: Content?): Cancelable {

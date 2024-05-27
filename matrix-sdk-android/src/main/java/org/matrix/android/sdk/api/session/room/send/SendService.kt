@@ -46,7 +46,7 @@ interface SendService {
      * @param msgType the message type: MessageType.MSGTYPE_TEXT (default) or MessageType.MSGTYPE_EMOTE
      * @param autoMarkdown If true, the SDK will generate a formatted HTML message from the body text if markdown syntax is present
      * @param additionalContent additional content to put in the event content
-     * @return a [Cancelable] and local Event id
+     * @return local Event id
      */
     //Changed for Circles
     fun sendTextMessage(
@@ -54,7 +54,7 @@ interface SendService {
             msgType: String = MessageType.MSGTYPE_TEXT,
             autoMarkdown: Boolean = false,
             additionalContent: Content? = null,
-    ): Pair<String, Cancelable>
+    ): String
 
     /**
      * Method to send a text message with a formatted body.
@@ -135,7 +135,7 @@ interface SendService {
      * @param additionalContent additional content to put in the event content
      * @return a [Cancelable] and local event id
      */
-    fun sendPoll(pollType: PollType, question: String, options: List<String>, additionalContent: Content? = null): Pair<String, Cancelable>
+    fun sendPoll(pollType: PollType, question: String, options: List<String>, additionalContent: Content? = null): String
 
     /**
      * Method to send a poll response.

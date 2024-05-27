@@ -134,7 +134,7 @@ internal class DefaultRelationService @AssistedInject constructor(
             autoMarkdown: Boolean,
             showInThread: Boolean,
             rootThreadEventId: String?
-    ): Pair<String, Cancelable?> {
+    ): String {
         val event = eventFactory.createReplyTextEvent(
                 roomId = roomId,
                 eventReplied = eventReplied,
@@ -143,11 +143,10 @@ internal class DefaultRelationService @AssistedInject constructor(
                 autoMarkdown = autoMarkdown,
                 rootThreadEventId = rootThreadEventId,
                 showInThread = showInThread
-        ) ?: return "" to null
+        ) ?: return ""
         saveLocalEcho(event)
-        val cancelable = eventSenderProcessor.postEvent(event)
-        val eventId = event.eventId ?: ""
-        return eventId to cancelable
+        eventSenderProcessor.postEvent(event)
+        return event.eventId ?: ""
     }
 
     override fun getEventAnnotationsSummary(eventId: String): EventAnnotationsSummary? {

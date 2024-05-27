@@ -152,7 +152,7 @@ interface RelationService {
             autoMarkdown: Boolean = false,
             showInThread: Boolean = false,
             rootThreadEventId: String? = null
-    ): Pair<String, Cancelable?>
+    ): String
 
     /**
      * Get the current EventAnnotationsSummary.
