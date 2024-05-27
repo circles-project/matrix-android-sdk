@@ -46,14 +46,15 @@ interface SendService {
      * @param msgType the message type: MessageType.MSGTYPE_TEXT (default) or MessageType.MSGTYPE_EMOTE
      * @param autoMarkdown If true, the SDK will generate a formatted HTML message from the body text if markdown syntax is present
      * @param additionalContent additional content to put in the event content
-     * @return a [Cancelable]
+     * @return a [Cancelable] and local Event id
      */
+    //Changed for Circles
     fun sendTextMessage(
             text: CharSequence,
             msgType: String = MessageType.MSGTYPE_TEXT,
             autoMarkdown: Boolean = false,
             additionalContent: Content? = null,
-    ): Cancelable
+    ): Pair<String, Cancelable>
 
     /**
      * Method to send a text message with a formatted body.
@@ -98,16 +99,16 @@ interface SendService {
      * @param rootThreadEventId when this param is not null, the Media will be sent in this specific thread
      * @param relatesTo add a relation content to the media event
      * @param additionalContent additional content to put in the event content
-     * @return a [Cancelable]
+     * @return a [Cancelable] and local Event id
      */
+    //Changed for Circles
     fun sendMedia(
             attachment: ContentAttachmentData,
             compressBeforeSending: Boolean,
-            roomIds: Set<String>,
             rootThreadEventId: String? = null,
             relatesTo: RelationDefaultContent? = null,
             additionalContent: Content? = null,
-    ): Cancelable
+    ): Pair<String, Cancelable>
 
     /**
      * Method to send a list of media asynchronously.
@@ -122,7 +123,6 @@ interface SendService {
     fun sendMedias(
             attachments: List<ContentAttachmentData>,
             compressBeforeSending: Boolean,
-            roomIds: Set<String>,
             rootThreadEventId: String? = null,
             additionalContent: Content? = null,
     ): Cancelable
@@ -133,9 +133,9 @@ interface SendService {
      * @param question the question
      * @param options list of options
      * @param additionalContent additional content to put in the event content
-     * @return a [Cancelable]
+     * @return a [Cancelable] and local event id
      */
-    fun sendPoll(pollType: PollType, question: String, options: List<String>, additionalContent: Content? = null): Cancelable
+    fun sendPoll(pollType: PollType, question: String, options: List<String>, additionalContent: Content? = null): Pair<String, Cancelable>
 
     /**
      * Method to send a poll response.
