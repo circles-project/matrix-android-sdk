@@ -144,6 +144,7 @@ interface RelationService {
      * @param showInThread If true, relation will be added to the reply in order to be visible from within threads
      * @param rootThreadEventId If show in thread is true then we need the rootThreadEventId to generate the relation
      */
+    //Changed for Circles
     fun replyToMessage(
             eventReplied: TimelineEvent,
             replyText: CharSequence,
@@ -151,7 +152,7 @@ interface RelationService {
             autoMarkdown: Boolean = false,
             showInThread: Boolean = false,
             rootThreadEventId: String? = null
-    ): Cancelable?
+    ): Pair<String, Cancelable?>
 
     /**
      * Get the current EventAnnotationsSummary.

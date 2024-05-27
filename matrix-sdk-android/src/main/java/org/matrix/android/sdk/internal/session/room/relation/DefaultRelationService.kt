@@ -126,6 +126,7 @@ internal class DefaultRelationService @AssistedInject constructor(
         return fetchEditHistoryTask.execute(FetchEditHistoryTask.Params(roomId, eventId))
     }
 
+    //Changed for Circles
     override fun replyToMessage(
             eventReplied: TimelineEvent,
             replyText: CharSequence,
@@ -133,7 +134,7 @@ internal class DefaultRelationService @AssistedInject constructor(
             autoMarkdown: Boolean,
             showInThread: Boolean,
             rootThreadEventId: String?
-    ): Cancelable? {
+    ): Pair<String, Cancelable?> {
         val event = eventFactory.createReplyTextEvent(
                 roomId = roomId,
                 eventReplied = eventReplied,
@@ -142,11 +143,11 @@ internal class DefaultRelationService @AssistedInject constructor(
                 autoMarkdown = autoMarkdown,
                 rootThreadEventId = rootThreadEventId,
                 showInThread = showInThread
-        )
-                ?.also { saveLocalEcho(it) }
-                ?: return null
-
-        return eventSenderProcessor.postEvent(event)
+        ) ?: return "" to null
+        saveLocalEcho(event)
+        val cancelable = eventSenderProcessor.postEvent(event)
+        val eventId = event.eventId ?: ""
+        return eventId to cancelable
     }
 
     override fun getEventAnnotationsSummary(eventId: String): EventAnnotationsSummary? {
