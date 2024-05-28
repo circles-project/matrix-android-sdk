@@ -24,7 +24,6 @@ import androidx.work.Configuration
 import androidx.work.WorkManager
 import androidx.work.WorkerFactory
 import com.zhuinden.monarchy.Monarchy
-import org.matrix.android.sdk.BuildConfig
 import org.matrix.android.sdk.api.auth.AuthenticationService
 import org.matrix.android.sdk.api.auth.HomeServerHistoryService
 import org.matrix.android.sdk.api.debug.DebugService
@@ -138,14 +137,5 @@ class Matrix(context: Context, matrixConfiguration: MatrixConfiguration) {
      */
     fun unregisterApiInterceptorListener(path: ApiPath, listener: ApiInterceptorListener) {
         apiInterceptor.removeListener(path, listener)
-    }
-
-    companion object {
-        /**
-         * @return a String with details about the Matrix SDK version.
-         */
-        fun getSdkVersion(): String {
-            return BuildConfig.SDK_VERSION + " (" + BuildConfig.GIT_SDK_REVISION + ")"
-        }
     }
 }

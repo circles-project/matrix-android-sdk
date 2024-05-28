@@ -91,14 +91,14 @@ cp -r ${elementAndroidPath}/dependencies_groups.gradle .
 # Add all changes to git
 git add -A
 
-## Check the number of diff in the file ./matrix-sdk-android/build.gradle. If 2 we can revert it, else it will have to be done manually
-nbDiff=`git diff --staged ./matrix-sdk-android/build.gradle | grep "@@" | wc -l | cut -d " " -f8`
+## Check the number of diff in the file ./matrix-sdk-android/build.gradle.kts. If 2 we can revert it, else it will have to be done manually
+nbDiff=`git diff --staged ./matrix-sdk-android/build.gradle.kts | grep "@@" | wc -l | cut -d " " -f8`
 if [[ ${nbDiff} -ne 2 ]]; then
   printf "\n================================================================================\n"
   read -p "Cannot reset file ./matrix-sdk-android/build.gradle automatically. Please check the diff, and restore some part. Press enter when it's done "
 else
-  git reset ./matrix-sdk-android/build.gradle
-  git restore ./matrix-sdk-android/build.gradle
+  git reset ./matrix-sdk-android/build.gradle.kts
+  git restore ./matrix-sdk-android/build.gradle.kts
 fi
 
 # Add all changes to git

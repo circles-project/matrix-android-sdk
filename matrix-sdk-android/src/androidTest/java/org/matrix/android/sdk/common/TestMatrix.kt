@@ -93,10 +93,4 @@ internal class TestMatrix(context: Context, matrixConfiguration: MatrixConfigura
     fun unregisterApiInterceptorListener(path: ApiPath, listener: ApiInterceptorListener) {
         apiInterceptor.removeListener(path, listener)
     }
-
-    companion object {
-        fun getSdkVersion(): String {
-            return BuildConfig.SDK_VERSION + " (" + BuildConfig.GIT_SDK_REVISION + ")"
-        }
-    }
 }

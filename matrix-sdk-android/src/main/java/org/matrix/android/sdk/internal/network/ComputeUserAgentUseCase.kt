@@ -52,7 +52,6 @@ class ComputeUserAgentUseCase @Inject constructor(
         val deviceModel = Build.MODEL
         val androidVersion = Build.VERSION.RELEASE
         val deviceBuildId = Build.DISPLAY
-        val matrixSdkVersion = BuildConfig.SDK_VERSION
 
         return buildString {
             append(appName)
@@ -71,8 +70,6 @@ class ComputeUserAgentUseCase @Inject constructor(
             append("Flavour ")
             append(flavorDescription)
             append("; ")
-            append("MatrixAndroidSdk2 ")
-            append(matrixSdkVersion)
             append(")")
         }
     }

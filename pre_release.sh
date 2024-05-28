@@ -8,7 +8,7 @@ version_name=$(grep '^VERSION_NAME=' gradle.properties | cut -d'=' -f2)
 
 echo "Current version name: $version_name"
 
-# Change version in build.gradle
+# Change version in build.gradle.kts
 awk -v version="$version_name" '/^[[:space:]]*version =/ {gsub(/version = "[^"]+"/, "version = \"" version "\"")} 1' matrix-sdk-android/build.gradle > tmp && mv tmp matrix-sdk-android/build.gradle
 
 # Change version in jitpack.yml
