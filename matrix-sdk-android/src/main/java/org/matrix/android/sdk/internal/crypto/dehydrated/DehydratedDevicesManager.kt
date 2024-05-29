@@ -44,13 +44,15 @@ internal class DehydratedDevicesManager @Inject constructor(
             if (isDehydrationRunning || isDeviceDehydrationRequired().not()) return
             isDehydrationRunning = true
             Timber.tag(LOG_TAG).d("start")
-            val ssPickleKey = getPickleKey()
+            val (defaultKeyId, bsSpekeKey) = getDefaultSSKey()
+            val ssPickleKey = getPickleKey(defaultKeyId, bsSpekeKey)
             val existingDehydratedDevice = getDehydratedDevice()
             Timber.tag(LOG_TAG).d("existing device $existingDehydratedDevice")
             existingDehydratedDevice?.deviceId?.let { deviceId ->
                 rehydrateDevice(ssPickleKey, deviceId, existingDehydratedDevice.deviceData)
             }
-            createDehydratedDevice(ssPickleKey)
+            val newPickleKey = generateAndStoreDehydratedDeviceKey(defaultKeyId, bsSpekeKey)
+            createDehydratedDevice(newPickleKey)
             saveLastDehydrationTime()
             Timber.tag(LOG_TAG).d("dehydration time ${System.currentTimeMillis()}")
         } catch (e: Exception) {
@@ -71,13 +73,17 @@ internal class DehydratedDevicesManager @Inject constructor(
 
     private fun getLastDehydrationTimeKey(): String = DEHYDRATION_TIME_PREFIX + myDeviceId
 
-    private suspend fun getPickleKey(): ByteArray {
+    private suspend fun getPickleKey(defaultKeyId: String, bsSpekeKey: ByteArray): ByteArray {
+        return getDehydratedDeviceKey(defaultKeyId, bsSpekeKey)
+                ?: generateAndStoreDehydratedDeviceKey(defaultKeyId, bsSpekeKey)
+    }
+
+    private fun getDefaultSSKey(): Pair<String, ByteArray> {
         val defaultKeyId = (ssssService.getDefaultKey() as? KeyInfoResult.Success)?.keyInfo?.id
                 ?: throw IllegalStateException("Default key not found")
         val bsSpekeKey = ssssService.getBsSpekePrivateKey(defaultKeyId)
                 ?: throw IllegalStateException("BsSpeke key not found")
-        return getDehydratedDeviceKey(defaultKeyId, bsSpekeKey)
-                ?: generateAndStoreDehydratedDeviceKey(defaultKeyId, bsSpekeKey)
+        return defaultKeyId to bsSpekeKey
     }
 
     private suspend fun rehydrateDevice(pickleKey: ByteArray, deviceId: String, deviceData: Map<String, String>) {
