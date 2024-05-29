@@ -12,8 +12,6 @@ import org.matrix.android.sdk.api.session.securestorage.KeyInfoResult
 import org.matrix.android.sdk.api.session.securestorage.KeyRef
 import org.matrix.android.sdk.api.session.securestorage.RawBytesKeySpec
 import org.matrix.android.sdk.api.session.securestorage.SharedSecretStorageService
-import org.matrix.android.sdk.api.util.fromBase64
-import org.matrix.android.sdk.api.util.toBase64NoPadding
 import org.matrix.android.sdk.internal.crypto.OlmMachine
 import org.matrix.android.sdk.internal.crypto.model.rest.DehydratedDeviceEventsResponse
 import org.matrix.android.sdk.internal.crypto.model.rest.GetDehydratedDeviceResponse
@@ -45,13 +43,16 @@ internal class DehydratedDevicesManager @Inject constructor(
             isDehydrationRunning = true
             Timber.tag(LOG_TAG).d("start")
             val (defaultKeyId, bsSpekeKey) = getDefaultSSKey()
+            Timber.tag(LOG_TAG).d("defaultKeyId - $defaultKeyId  bsSpekeKey - ${RawBytesKeySpec(bsSpekeKey)}")
             val ssPickleKey = getPickleKey(defaultKeyId, bsSpekeKey)
+            Timber.tag(LOG_TAG).d("ssPickleKey - ${RawBytesKeySpec(ssPickleKey)}")
             val existingDehydratedDevice = getDehydratedDevice()
             Timber.tag(LOG_TAG).d("existing device $existingDehydratedDevice")
             existingDehydratedDevice?.deviceId?.let { deviceId ->
                 rehydrateDevice(ssPickleKey, deviceId, existingDehydratedDevice.deviceData)
             }
             val newPickleKey = generateAndStoreDehydratedDeviceKey(defaultKeyId, bsSpekeKey)
+            Timber.tag(LOG_TAG).d("newPickleKey - ${RawBytesKeySpec(newPickleKey)}")
             createDehydratedDevice(newPickleKey)
             saveLastDehydrationTime()
             Timber.tag(LOG_TAG).d("dehydration time ${System.currentTimeMillis()}")
@@ -137,26 +138,26 @@ internal class DehydratedDevicesManager @Inject constructor(
     }
 
     private suspend fun getDehydratedDeviceKey(defaultKeyId: String, bsSpekeKey: ByteArray): ByteArray? = tryOrNull {
-        ssssService.getSecret(
-                name = ORG_FUTO_SSSS_KEY_DEHYDRATED_DEVICE,
+        ssssService.getSecretBytes(
+                name = M_DEHYDRATED_DEVICE,
                 keyId = defaultKeyId,
                 secretKey = RawBytesKeySpec(bsSpekeKey)
-        ).fromBase64()
+        )
     }
 
     private suspend fun generateAndStoreDehydratedDeviceKey(defaultKeyId: String, bsSpekeKey: ByteArray): ByteArray {
         val bytes = ByteArray(32).also { SecureRandom().nextBytes(it) }
-        ssssService.storeSecret(
-                name = ORG_FUTO_SSSS_KEY_DEHYDRATED_DEVICE,
-                secretBase64 = bytes.toBase64NoPadding(),
+        ssssService.storeSecretBytes(
+                name = M_DEHYDRATED_DEVICE,
+                secret = bytes,
                 keys = listOf(KeyRef(defaultKeyId, RawBytesKeySpec(bsSpekeKey)))
         )
         return bytes
     }
 
     companion object {
-        private const val ORG_FUTO_SSSS_KEY_DEHYDRATED_DEVICE = "org.futo.ssss.key.dehydrated_device"
-        private const val LOG_TAG = "DehydratedDevice"
+        private const val M_DEHYDRATED_DEVICE = "m.dehydrated_device"
+        const val LOG_TAG = "DehydratedDevice"
         private const val PREF_NAME = "org.futo.circles.dehydrated"
         private const val DEHYDRATION_TIME_PREFIX = "last_device_dehydration_"
     }
