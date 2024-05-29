@@ -43,16 +43,13 @@ internal class DehydratedDevicesManager @Inject constructor(
             isDehydrationRunning = true
             Timber.tag(LOG_TAG).d("start")
             val (defaultKeyId, bsSpekeKey) = getDefaultSSKey()
-            Timber.tag(LOG_TAG).d("defaultKeyId - $defaultKeyId  bsSpekeKey - ${RawBytesKeySpec(bsSpekeKey)}")
             val ssPickleKey = getPickleKey(defaultKeyId, bsSpekeKey)
-            Timber.tag(LOG_TAG).d("ssPickleKey - ${RawBytesKeySpec(ssPickleKey)}")
             val existingDehydratedDevice = getDehydratedDevice()
             Timber.tag(LOG_TAG).d("existing device $existingDehydratedDevice")
             existingDehydratedDevice?.deviceId?.let { deviceId ->
                 rehydrateDevice(ssPickleKey, deviceId, existingDehydratedDevice.deviceData)
             }
             val newPickleKey = generateAndStoreDehydratedDeviceKey(defaultKeyId, bsSpekeKey)
-            Timber.tag(LOG_TAG).d("newPickleKey - ${RawBytesKeySpec(newPickleKey)}")
             createDehydratedDevice(newPickleKey)
             saveLastDehydrationTime()
             Timber.tag(LOG_TAG).d("dehydration time ${System.currentTimeMillis()}")
