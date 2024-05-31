@@ -31,7 +31,7 @@ import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
-internal class ThumbnailExtractor @Inject constructor(
+class ThumbnailExtractor @Inject constructor(
         private val context: Context
 ) {
 
@@ -116,7 +116,7 @@ internal class ThumbnailExtractor @Inject constructor(
     }
 
     companion object {
-        private const val POST_THUMB_SIZE = 600
+        const val POST_THUMB_SIZE = 600
         const val PROFILE_ICON_THUMB_SIZE = 300
     }
 }

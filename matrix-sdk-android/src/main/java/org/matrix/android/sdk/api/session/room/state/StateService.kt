@@ -26,6 +26,7 @@ import org.matrix.android.sdk.api.session.room.model.RoomJoinRules
 import org.matrix.android.sdk.api.session.room.model.RoomJoinRulesAllowEntry
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.api.util.Optional
+import org.matrix.android.sdk.internal.session.content.ThumbnailExtractor
 
 interface StateService {
 
@@ -59,7 +60,7 @@ interface StateService {
     /**
      * Update the avatar of the room.
      */
-    suspend fun updateAvatar(avatarUri: Uri, fileName: String)
+    suspend fun updateAvatar(avatarUri: Uri, fileName: String, maxThumbnailSize: Int)
 
     /**
      * Delete the avatar of the room.
