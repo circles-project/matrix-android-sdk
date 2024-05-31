@@ -33,6 +33,7 @@ import org.matrix.android.sdk.internal.database.model.PendingThreePidEntity
 import org.matrix.android.sdk.internal.database.model.UserThreePidEntity
 import org.matrix.android.sdk.internal.di.SessionDatabase
 import org.matrix.android.sdk.internal.session.content.FileUploader
+import org.matrix.android.sdk.internal.session.content.ThumbnailExtractor
 import org.matrix.android.sdk.internal.session.user.UserStore
 import org.matrix.android.sdk.internal.task.TaskExecutor
 import org.matrix.android.sdk.internal.task.configureWith
@@ -52,7 +53,8 @@ internal class DefaultProfileService @Inject constructor(
         private val deleteThreePidTask: DeleteThreePidTask,
         private val pendingThreePidMapper: PendingThreePidMapper,
         private val userStore: UserStore,
-        private val fileUploader: FileUploader
+        private val fileUploader: FileUploader,
+        private val thumbnailExtractor: ThumbnailExtractor
 ) : ProfileService {
 
     override suspend fun getDisplayName(userId: String): Optional<String> {
@@ -71,8 +73,10 @@ internal class DefaultProfileService @Inject constructor(
         }
     }
 
+    //Changed for Circles - upload thumbnail instead of full image
     override suspend fun updateAvatar(userId: String, newAvatarUri: Uri, fileName: String, propagateUpdate: Boolean) {
-        val response = fileUploader.uploadFromUri(newAvatarUri, fileName, MimeTypes.Jpeg)
+        val thumbnailData = thumbnailExtractor.extractImageThumbnail(newAvatarUri, ThumbnailExtractor.PROFILE_ICON_THUMB_SIZE) ?: return
+        val response = fileUploader.uploadByteArray(thumbnailData.bytes, fileName, MimeTypes.Jpeg)
         setAvatarUrlTask.execute(SetAvatarUrlTask.Params(
                 userId = userId, newAvatarUrl = response.contentUri, propagateUpdate = propagateUpdate
         ))

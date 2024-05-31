@@ -156,7 +156,7 @@ internal class DefaultStateService @AssistedInject constructor(
     }
 
     override suspend fun updateAvatar(avatarUri: Uri, fileName: String) {
-        val thumbnailData = thumbnailExtractor.extractImageThumbnail(avatarUri) ?: return
+        val thumbnailData = thumbnailExtractor.extractImageThumbnail(avatarUri, ThumbnailExtractor.PROFILE_ICON_THUMB_SIZE) ?: return
         val response = fileUploader.uploadByteArray(thumbnailData.bytes, fileName, MimeTypes.Jpeg)
         sendStateEvent(
                 eventType = EventType.STATE_ROOM_AVATAR,

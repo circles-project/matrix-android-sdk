@@ -50,7 +50,7 @@ internal class ThumbnailExtractor @Inject constructor(
         if (attachment.mimeType == MimeTypes.Gif || attachment.mimeType == MimeTypes.Webp) return null
         return when (attachment.type) {
             ContentAttachmentData.Type.VIDEO -> extractVideoThumbnail(attachment.queryUri)
-            ContentAttachmentData.Type.IMAGE -> extractImageThumbnail(attachment.queryUri)
+            ContentAttachmentData.Type.IMAGE -> extractImageThumbnail(attachment.queryUri, POST_THUMB_SIZE)
             else                             -> null
         }
     }
@@ -62,27 +62,13 @@ internal class ThumbnailExtractor @Inject constructor(
         try {
             mediaMetadataRetriever.setDataSource(context, queryUri)
             mediaMetadataRetriever.frameAtTime?.let { thumbnail ->
-                val scaledThumbnail = createScaledThumbnailBitmap(thumbnail)
-                val outputStream = ByteArrayOutputStream()
-                scaledThumbnail.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
-                val thumbnailWidth = thumbnail.width
-                val thumbnailHeight = thumbnail.height
-                val thumbnailSize = outputStream.size()
-                thumbnailData = ThumbnailData(
-                        width = thumbnailWidth,
-                        height = thumbnailHeight,
-                        size = thumbnailSize.toLong(),
-                        bytes = outputStream.toByteArray(),
-                        mimeType = MimeTypes.Jpeg
-                )
-                scaledThumbnail.recycle()
+                thumbnailData = createScaledThumbnail(thumbnail, POST_THUMB_SIZE)
                 thumbnail.recycle()
-                outputStream.reset()
             } ?: run {
-                Timber.e("Cannot extract video thumbnail at $queryUri")
+                Timber.e("Can not extract video thumbnail at $queryUri")
             }
         } catch (e: Exception) {
-            Timber.e(e, "Cannot extract video thumbnail")
+            Timber.e(e, "Can not extract video thumbnail")
         } finally {
             mediaMetadataRetriever.release()
         }
@@ -90,26 +76,12 @@ internal class ThumbnailExtractor @Inject constructor(
     }
 
     //Added for Circles
-    fun extractImageThumbnail(queryUri: Uri): ThumbnailData? {
+    fun extractImageThumbnail(queryUri: Uri, maxThumbnailSize: Int): ThumbnailData? {
         var thumbnailData: ThumbnailData? = null
         try {
-            val thumbnail = createScaledThumbnailBitmap(getBitmapFromUri(queryUri))
-            val outputStream = ByteArrayOutputStream()
-            thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
-            val thumbnailWidth = thumbnail.width
-            val thumbnailHeight = thumbnail.height
-            val thumbnailSize = outputStream.size()
-            thumbnailData = ThumbnailData(
-                    width = thumbnailWidth,
-                    height = thumbnailHeight,
-                    size = thumbnailSize.toLong(),
-                    bytes = outputStream.toByteArray(),
-                    mimeType = MimeTypes.Jpeg
-            )
-            thumbnail.recycle()
-            outputStream.reset()
+            thumbnailData = createScaledThumbnail(getBitmapFromUri(queryUri), maxThumbnailSize)
         } catch (e: Exception) {
-            Timber.e(e, "Cannot extract image thumbnail")
+            Timber.e(e, "Can not extract image thumbnail")
         }
         return thumbnailData
     }
@@ -122,13 +94,29 @@ internal class ThumbnailExtractor @Inject constructor(
     }
 
     //Added for Circles
-    private fun createScaledThumbnailBitmap(originalBitmap: Bitmap): Bitmap {
-        val maxThumbnailSize = 800
+    private fun createScaledThumbnail(originalBitmap: Bitmap, maxThumbnailSize: Int): ThumbnailData {
         val originalWidth = originalBitmap.width
         val originalHeight = originalBitmap.height
         val aspectRatio = originalWidth.toFloat() / originalHeight.toFloat()
         val size = if (originalHeight > originalWidth) Size((maxThumbnailSize * aspectRatio).toInt(), maxThumbnailSize)
         else Size(maxThumbnailSize, (maxThumbnailSize / aspectRatio).toInt())
-        return Bitmap.createScaledBitmap(originalBitmap, size.width, size.height, true)
+        val scaledBitmap = Bitmap.createScaledBitmap(originalBitmap, size.width, size.height, true)
+        val outputStream = ByteArrayOutputStream()
+        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream)
+        val thumbnailData = ThumbnailData(
+                width = scaledBitmap.width,
+                height = scaledBitmap.height,
+                size = outputStream.size().toLong(),
+                bytes = outputStream.toByteArray(),
+                mimeType = MimeTypes.Jpeg
+        )
+        scaledBitmap.recycle()
+        outputStream.reset()
+        return thumbnailData
+    }
+
+    companion object {
+        private const val POST_THUMB_SIZE = 600
+        const val PROFILE_ICON_THUMB_SIZE = 300
     }
 }
