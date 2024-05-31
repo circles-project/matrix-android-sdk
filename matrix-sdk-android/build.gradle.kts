@@ -103,7 +103,7 @@ dependencies {
     api("androidx.core:core-ktx:1.13.1")
 
     // Lifecycle
-    val lifecycle = "2.8.0"
+    val lifecycle = "2.8.1"
     api("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle")
     api("androidx.lifecycle:lifecycle-common:$lifecycle")
     api("androidx.lifecycle:lifecycle-process:$lifecycle")
@@ -206,7 +206,7 @@ publishing {
         create<MavenPublication>("release") {
             groupId = "org.futo.gitlab.circles"
             artifactId = "matrix-android-sdk"
-            version = "0.1.97"
+            version = "0.1.98"
 
             afterEvaluate {
                 from(components["release"])
