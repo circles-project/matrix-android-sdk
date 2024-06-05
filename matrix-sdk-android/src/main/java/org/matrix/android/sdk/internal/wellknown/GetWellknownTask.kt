@@ -93,33 +93,39 @@ internal class DefaultGetWellknownTask @Inject constructor(
                 WellknownResult.FailPrompt(null, null)
             } else {
                 if (homeServerBaseUrl.isValidUrl()) {
+                    WellknownResult.Prompt(homeServerBaseUrl, wellKnown.identityServer?.baseURL, wellKnown)
                     // Check that HS is a real one
-                    validateHomeServer(homeServerBaseUrl, wellKnown, client)
+                    // Changed for Circles
+                    //validateHomeServer(homeServerBaseUrl, wellKnown, client)
                 } else {
                     WellknownResult.FailError
                 }
             }
         } catch (throwable: Throwable) {
             when (throwable) {
-                is UnrecognizedCertificateException -> {
+                is UnrecognizedCertificateException        -> {
                     throw Failure.UnrecognizedCertificateFailure(
                             "https://$domain",
                             throwable.fingerprint
                     )
                 }
-                is Failure.NetworkConnection -> {
+
+                is Failure.NetworkConnection               -> {
                     WellknownResult.Ignore
                 }
-                is Failure.OtherServerError -> {
+
+                is Failure.OtherServerError                -> {
                     when (throwable.httpCode) {
                         HttpsURLConnection.HTTP_NOT_FOUND -> WellknownResult.Ignore
-                        else -> WellknownResult.FailPrompt(null, null)
+                        else                              -> WellknownResult.FailPrompt(null, null)
                     }
                 }
+
                 is MalformedJsonException, is EOFException -> {
                     WellknownResult.FailPrompt(null, null)
                 }
-                else -> {
+
+                else                                       -> {
                     throw throwable
                 }
             }
