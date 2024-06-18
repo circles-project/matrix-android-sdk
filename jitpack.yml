@@ -2,4 +2,4 @@ jdk:
   - openjdk11
 install:
   - FILE="-Dfile=matrix-sdk-android-release.aar"
-  - mvn install:install-file $FILE -DgroupId=org.futo.gitlab.circles -DartifactId=matrix-android-sdk -Dversion=1.6.10.41 -Dpackaging=aar -DpomFile=pom.xml
+  - mvn install:install-file $FILE -DgroupId=org.futo.gitlab.circles -DartifactId=matrix-android-sdk -Dversion=1.6.10.42 -Dpackaging=aar -DpomFile=pom.xml
