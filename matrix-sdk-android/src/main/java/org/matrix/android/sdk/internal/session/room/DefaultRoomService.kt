@@ -86,7 +86,7 @@ internal class DefaultRoomService @Inject constructor(
 ) : RoomService {
 
     override suspend fun createRoom(createRoomParams: CreateRoomParams): String {
-        return createRoomTask.executeRetry(createRoomParams, 3)
+        return createRoomTask.execute(createRoomParams)
     }
 
     override suspend fun createLocalRoom(createRoomParams: CreateRoomParams): String {
