@@ -103,7 +103,7 @@ dependencies {
     api("androidx.core:core-ktx:1.13.1")
 
     // Lifecycle
-    val lifecycle = "2.8.1"
+    val lifecycle = "2.8.2"
     api("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle")
     api("androidx.lifecycle:lifecycle-common:$lifecycle")
     api("androidx.lifecycle:lifecycle-process:$lifecycle")
