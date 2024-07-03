@@ -54,7 +54,8 @@ internal class DefaultProfileService @Inject constructor(
         private val pendingThreePidMapper: PendingThreePidMapper,
         private val userStore: UserStore,
         private val fileUploader: FileUploader,
-        private val thumbnailExtractor: ThumbnailExtractor
+        private val thumbnailExtractor: ThumbnailExtractor,
+        private val deleteEmailThreePidUIATask: DeleteEmailThreePidUIATask
 ) : ProfileService {
 
     override suspend fun getDisplayName(userId: String): Optional<String> {
@@ -114,7 +115,7 @@ internal class DefaultProfileService @Inject constructor(
         )
     }
 
-    private fun refreshThreePids() {
+    override fun refreshThreePids() {
         refreshUserThreePidsTask
                 .configureWith()
                 .executeBy(taskExecutor)
@@ -173,12 +174,18 @@ internal class DefaultProfileService @Inject constructor(
         deleteThreePidTask.execute(DeleteThreePidTask.Params(threePid))
         refreshThreePids()
     }
+
+    //Added for Circles UIA stages
+    override suspend fun deleteEmailThreePidStages(email: String, userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor) {
+        deleteEmailThreePidUIATask.execute(DeleteEmailThreePidUIATask.Params(email, userInteractiveAuthInterceptor))
+        refreshThreePids()
+    }
 }
 
 private fun UserThreePidEntity.asDomain(): ThreePid {
     return when (medium) {
-        ThirdPartyIdentifier.MEDIUM_EMAIL -> ThreePid.Email(address)
+        ThirdPartyIdentifier.MEDIUM_EMAIL  -> ThreePid.Email(address)
         ThirdPartyIdentifier.MEDIUM_MSISDN -> ThreePid.Msisdn(address)
-        else -> error("Invalid medium type")
+        else                               -> error("Invalid medium type")
     }
 }

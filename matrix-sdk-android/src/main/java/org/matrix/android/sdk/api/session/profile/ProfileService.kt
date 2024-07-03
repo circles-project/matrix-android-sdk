@@ -136,4 +136,10 @@ interface ProfileService {
             )
         }
     }
+
+    // Added for Circles
+    fun refreshThreePids()
+
+    // Added for Circles
+    suspend fun deleteEmailThreePidStages(email: String, userInteractiveAuthInterceptor: UserInteractiveAuthInterceptor)
 }
