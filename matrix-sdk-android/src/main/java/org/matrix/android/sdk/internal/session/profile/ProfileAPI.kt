@@ -112,4 +112,8 @@ internal interface ProfileAPI {
      */
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/3pid/delete")
     suspend fun deleteThreePid(@Body body: DeleteThreePidBody): DeleteThreePidResponse
+
+    //Created for Circles
+    @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "account/3pid/delete")
+    suspend fun deleteEmailThreePidUIA(@Body body: DeleteEmailThreePidUIABody): DeleteThreePidResponse
 }
