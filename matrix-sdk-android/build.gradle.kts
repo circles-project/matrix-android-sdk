@@ -103,7 +103,7 @@ dependencies {
     api("androidx.core:core-ktx:1.13.1")
 
     // Lifecycle
-    val lifecycle = "2.8.2"
+    val lifecycle = "2.8.3"
     api("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle")
     api("androidx.lifecycle:lifecycle-common:$lifecycle")
     api("androidx.lifecycle:lifecycle-process:$lifecycle")
@@ -184,11 +184,11 @@ dependencies {
     testImplementation("io.reactivex.rxjava2:rxkotlin:2.4.0")
 
     kaptAndroidTest("com.google.dagger:dagger-compiler:$dagger")
-    androidTestImplementation("androidx.test:core:1.5.0")
-    androidTestImplementation("androidx.test:runner:1.5.2")
-    androidTestImplementation("androidx.test:rules:1.5.0")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation("androidx.test:core:1.6.1")
+    androidTestImplementation("androidx.test:runner:1.6.1")
+    androidTestImplementation("androidx.test:rules:1.6.1")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
     androidTestImplementation("org.amshove.kluent:kluent-android:1.73")
     androidTestImplementation("io.mockk:mockk-android:$mockk")
     androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
@@ -198,7 +198,7 @@ dependencies {
     // Plant Timber tree for test
     androidTestImplementation("net.lachlanmckee:timber-junit-rule:1.0.1")
 
-    androidTestUtil("androidx.test:orchestrator:1.4.2")
+    androidTestUtil("androidx.test:orchestrator:1.5.0")
 }
 
 publishing {
