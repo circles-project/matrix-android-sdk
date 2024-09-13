@@ -103,7 +103,7 @@ dependencies {
     api("androidx.core:core-ktx:1.13.1")
 
     // Lifecycle
-    val lifecycle = "2.8.3"
+    val lifecycle = "2.8.5"
     api("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle")
     api("androidx.lifecycle:lifecycle-common:$lifecycle")
     api("androidx.lifecycle:lifecycle-process:$lifecycle")
@@ -137,7 +137,7 @@ dependencies {
     // Database
     api("com.github.Zhuinden:realm-monarchy:0.7.1")
 
-    kapt("dk.ilios:realmfieldnameshelper:2.0.0")
+    kapt(project(":realmfieldnameshelper"))
 
     // Shared Preferences
     api("androidx.preference:preference-ktx:1.2.1")

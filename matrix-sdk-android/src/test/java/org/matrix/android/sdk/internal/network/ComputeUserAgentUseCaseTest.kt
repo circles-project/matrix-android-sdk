@@ -128,9 +128,6 @@ class ComputeUserAgentUseCaseTest {
             append("; ")
             append("Flavour ")
             append(A_FLAVOUR)
-            append("; ")
-            append("MatrixAndroidSdk2 ")
-            append(BuildConfig.SDK_VERSION)
             append(")")
         }
     }

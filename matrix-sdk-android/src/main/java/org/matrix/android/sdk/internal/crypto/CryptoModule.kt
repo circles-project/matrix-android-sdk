@@ -63,14 +63,10 @@ import org.matrix.android.sdk.internal.crypto.store.RustCryptoStore
 import org.matrix.android.sdk.internal.crypto.store.db.RealmCryptoStoreMigration
 import org.matrix.android.sdk.internal.crypto.store.db.RealmCryptoStoreModule
 import org.matrix.android.sdk.internal.crypto.tasks.ClaimOneTimeKeysForUsersDeviceTask
-import org.matrix.android.sdk.internal.crypto.tasks.CreateDehydratedDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultClaimOneTimeKeysForUsersDevice
-import org.matrix.android.sdk.internal.crypto.tasks.DefaultCreateDehydratedDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultDeleteDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultDownloadKeysForUsers
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultEncryptEventTask
-import org.matrix.android.sdk.internal.crypto.tasks.DefaultGetDehydratedDeviceEventsTask
-import org.matrix.android.sdk.internal.crypto.tasks.DefaultGetDehydratedDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultGetDeviceInfoTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultGetDevicesTask
 import org.matrix.android.sdk.internal.crypto.tasks.DefaultSendEventTask
@@ -83,8 +79,6 @@ import org.matrix.android.sdk.internal.crypto.tasks.DefaultUploadSigningKeysTask
 import org.matrix.android.sdk.internal.crypto.tasks.DeleteDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.DownloadKeysForUsersTask
 import org.matrix.android.sdk.internal.crypto.tasks.EncryptEventTask
-import org.matrix.android.sdk.internal.crypto.tasks.GetDehydratedDeviceEventsTask
-import org.matrix.android.sdk.internal.crypto.tasks.GetDehydratedDeviceTask
 import org.matrix.android.sdk.internal.crypto.tasks.GetDeviceInfoTask
 import org.matrix.android.sdk.internal.crypto.tasks.GetDevicesTask
 import org.matrix.android.sdk.internal.crypto.tasks.SendEventTask
@@ -259,13 +253,4 @@ internal abstract class CryptoModule {
 
     @Binds
     abstract fun bindKeysBackupService(service: RustKeyBackupService): KeysBackupService
-
-    @Binds
-    abstract fun bindCreateDehydratedDeviceTask(task: DefaultCreateDehydratedDeviceTask): CreateDehydratedDeviceTask
-
-    @Binds
-    abstract fun bindGetDehydratedDeviceTask(task: DefaultGetDehydratedDeviceTask): GetDehydratedDeviceTask
-
-    @Binds
-    abstract fun bindGetDehydratedDeviceEventsTask(task: DefaultGetDehydratedDeviceEventsTask): GetDehydratedDeviceEventsTask
 }

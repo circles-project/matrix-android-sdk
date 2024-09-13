@@ -188,8 +188,7 @@ internal class Device @AssistedInject constructor(
                         locallyVerified = innerDevice.locallyTrusted
                 ),
                 isBlocked = innerDevice.isBlocked,
-                firstTimeSeenLocalTs = innerDevice.firstTimeSeenTs.toLong(),
-                isDehydrated = innerDevice.dehydrated
+                firstTimeSeenLocalTs = innerDevice.firstTimeSeenTs.toLong()
         )
     }
 }

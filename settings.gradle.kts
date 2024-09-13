@@ -22,11 +22,9 @@ dependencyResolutionManagement {
         maven {
             url = uri("https://jitpack.io")
         }
-        @Suppress("DEPRECATION")
-        //noinspection JcenterRepositoryObsolete
-        jcenter()
     }
 }
 
 include (":matrix-sdk-android")
+include (":realmfieldnameshelper")
 

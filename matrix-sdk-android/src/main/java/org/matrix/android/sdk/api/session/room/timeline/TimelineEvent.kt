@@ -38,7 +38,6 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageContent.Companion.MSG_TYPE_JSON_KEY
 import org.matrix.android.sdk.api.session.room.model.message.MessageContentWithFormattedBody
 import org.matrix.android.sdk.api.session.room.model.message.MessageEndPollContent
-import org.matrix.android.sdk.api.session.room.model.message.MessageFormat
 import org.matrix.android.sdk.api.session.room.model.message.MessagePollContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageTextContent
@@ -46,6 +45,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
 import org.matrix.android.sdk.api.session.room.sender.SenderInfo
 import org.matrix.android.sdk.api.util.ContentUtils
+import org.matrix.android.sdk.api.util.ContentUtils.ensureCorrectFormattedBodyInTextReply
 import org.matrix.android.sdk.api.util.ContentUtils.extractUsefulTextFromReply
 
 /**
@@ -147,16 +147,16 @@ fun TimelineEvent.getEditedEventId(): String? {
  */
 fun TimelineEvent.getLastMessageContent(): MessageContent? {
     return when (root.getClearType()) {
-        EventType.STICKER -> root.getClearContent().toModel<MessageStickerContent>()
+        EventType.STICKER                          -> root.getClearContent().toModel<MessageStickerContent>()
         // XXX
         // Polls/Beacon are not message contents like others as there is no msgtype subtype to discriminate moshi parsing
         // so toModel<MessageContent> won't parse them correctly
         // It's discriminated on event type instead. Maybe it shouldn't be MessageContent at all to avoid confusion?
-        in EventType.POLL_START.values -> (getLastPollEditNewContent() ?: root.getClearContent()).toModel<MessagePollContent>()
-        in EventType.POLL_END.values -> (getLastPollEditNewContent() ?: root.getClearContent()).toModel<MessageEndPollContent>()
+        in EventType.POLL_START.values             -> (getLastPollEditNewContent() ?: root.getClearContent()).toModel<MessagePollContent>()
+        in EventType.POLL_END.values               -> (getLastPollEditNewContent() ?: root.getClearContent()).toModel<MessageEndPollContent>()
         in EventType.STATE_ROOM_BEACON_INFO.values -> (getLastEditNewContent() ?: root.getClearContent()).toModel<MessageBeaconInfoContent>()
-        in EventType.BEACON_LOCATION_DATA.values -> (getLastEditNewContent() ?: root.getClearContent()).toModel<MessageBeaconLocationDataContent>()
-        else -> (getLastEditNewContent() ?: root.getClearContent()).toModel()
+        in EventType.BEACON_LOCATION_DATA.values   -> (getLastEditNewContent() ?: root.getClearContent()).toModel<MessageBeaconLocationDataContent>()
+        else                                       -> (getLastEditNewContent() ?: root.getClearContent()).toModel()
     }
 }
 
@@ -177,27 +177,6 @@ fun TimelineEvent.getLastEditNewContent(): Content? {
         }
     } else {
         lastContent
-    }
-}
-
-private const val MX_REPLY_END_TAG = "</mx-reply>"
-
-/**
- * Not every client sends a formatted body in the last edited event since this is not required in the
- * [Matrix specification](https://spec.matrix.org/v1.4/client-server-api/#applying-mnew_content).
- * We must ensure there is one so that it is still considered as a reply when rendering the message.
- */
-private fun ensureCorrectFormattedBodyInTextReply(messageTextContent: MessageTextContent, previousFormattedBody: String): MessageTextContent {
-    return when {
-        messageTextContent.formattedBody.isNullOrEmpty() && previousFormattedBody.contains(MX_REPLY_END_TAG) -> {
-            // take previous formatted body with the new body content
-            val newFormattedBody = previousFormattedBody.replaceAfterLast(MX_REPLY_END_TAG, messageTextContent.body)
-            messageTextContent.copy(
-                    formattedBody = newFormattedBody,
-                    format = MessageFormat.FORMAT_MATRIX_HTML,
-            )
-        }
-        else -> messageTextContent
     }
 }
 

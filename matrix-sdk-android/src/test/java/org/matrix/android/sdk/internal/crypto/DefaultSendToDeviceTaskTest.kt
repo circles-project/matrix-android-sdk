@@ -251,9 +251,5 @@ class DefaultSendToDeviceTaskTest {
         override suspend fun getKeyChanges(oldToken: String, newToken: String): KeyChangesResponse {
             throw java.lang.AssertionError("Should not be called")
         }
-
-        override suspend fun createDehydratedDevice(params: Map<String, Any>?): CreateDehydratedDeviceResponse {
-            throw java.lang.AssertionError("Should not be called")
-        }
     }
 }

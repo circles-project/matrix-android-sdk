@@ -135,8 +135,7 @@ internal class RustCryptoService @Inject constructor(
         private val getRoomUserIds: GetRoomUserIdsUseCase,
         private val outgoingRequestsProcessor: OutgoingRequestsProcessor,
         private val matrixConfiguration: MatrixConfiguration,
-        private val perSessionBackupQueryRateLimiter: PerSessionBackupQueryRateLimiter,
-        private val dehydratedDevicesManager: DehydratedDevicesManager
+        private val perSessionBackupQueryRateLimiter: PerSessionBackupQueryRateLimiter
 ) : CryptoService {
 
     private val isStarting = AtomicBoolean(false)
@@ -521,9 +520,6 @@ internal class RustCryptoService @Inject constructor(
                     }
                 }
             }
-            //Added for Circles
-            //Try to get keys from dehydrated device to decrypt
-            dehydratedDevicesManager.handleDehydratedDevice()
             throw mxCryptoError
         }
     }

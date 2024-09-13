@@ -16,8 +16,6 @@
 
 package org.matrix.android.sdk.internal.auth.login
 
-import android.util.Patterns
-import com.otaliastudios.opengl.core.use
 import org.matrix.android.sdk.api.auth.LoginType
 import org.matrix.android.sdk.api.auth.data.Credentials
 import org.matrix.android.sdk.api.auth.login.LoginProfileInfo
@@ -26,6 +24,7 @@ import org.matrix.android.sdk.api.auth.registration.RegisterThreePid
 import org.matrix.android.sdk.api.auth.registration.RegistrationResult
 import org.matrix.android.sdk.api.auth.registration.Stage
 import org.matrix.android.sdk.api.auth.registration.toFlowResult
+import org.matrix.android.sdk.api.extensions.isEmail
 import org.matrix.android.sdk.api.failure.Failure
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.util.JsonDict
@@ -68,7 +67,7 @@ internal class DefaultLoginWizard(
             initialDeviceName: String,
             deviceId: String?
     ): Session {
-        val loginParams = if (Patterns.EMAIL_ADDRESS.matcher(login).matches()) {
+        val loginParams = if (login.isEmail()) {
             PasswordLoginParams.thirdPartyIdentifier(
                     medium = ThreePidMedium.EMAIL,
                     address = login,

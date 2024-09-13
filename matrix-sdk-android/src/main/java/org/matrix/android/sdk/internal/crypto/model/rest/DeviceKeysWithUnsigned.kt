@@ -58,8 +58,5 @@ internal data class DeviceKeysWithUnsigned(
          * Additional data added to the device key information by intermediate servers, and not covered by the signatures.
          */
         @Json(name = "unsigned")
-        val unsigned: UnsignedDeviceInfo? = null,
-
-        @Json(name = "dehydrated")
-        val isDehydrated: Boolean? = null
+        val unsigned: UnsignedDeviceInfo? = null
 )
