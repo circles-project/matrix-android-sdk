@@ -24,8 +24,7 @@ import javax.inject.Inject
 internal abstract class SetAvatarUrlTask : Task<SetAvatarUrlTask.Params, Unit> {
     data class Params(
             val userId: String,
-            val newAvatarUrl: String,
-            val propagateUpdate: Boolean
+            val newAvatarUrl: String
     )
 }
 
@@ -39,7 +38,7 @@ internal class DefaultSetAvatarUrlTask @Inject constructor(
                 avatarUrl = params.newAvatarUrl
         )
         return executeRequest(globalErrorReceiver) {
-            profileAPI.setAvatarUrl(params.userId, params.propagateUpdate, body)
+            profileAPI.setAvatarUrl(params.userId, body)
         }
     }
 }

@@ -65,22 +65,18 @@ internal class DefaultProfileService @Inject constructor(
         return Optional.from(displayName)
     }
 
-    override suspend fun setDisplayName(userId: String, newDisplayName: String, propagateUpdate: Boolean) {
+    override suspend fun setDisplayName(userId: String, newDisplayName: String) {
         withContext(coroutineDispatchers.io) {
-            setDisplayNameTask.execute(SetDisplayNameTask.Params(
-                    userId = userId, newDisplayName = newDisplayName, propagateUpdate = propagateUpdate
-            ))
+            setDisplayNameTask.execute(SetDisplayNameTask.Params(userId = userId, newDisplayName = newDisplayName))
             userStore.updateDisplayName(userId, newDisplayName)
         }
     }
 
     //Changed for Circles - upload thumbnail instead of full image
-    override suspend fun updateAvatar(userId: String, newAvatarUri: Uri, fileName: String, propagateUpdate: Boolean) {
+    override suspend fun updateAvatar(userId: String, newAvatarUri: Uri, fileName: String) {
         val thumbnailData = thumbnailExtractor.extractImageThumbnail(newAvatarUri, ThumbnailExtractor.PROFILE_ICON_THUMB_SIZE) ?: return
         val response = fileUploader.uploadByteArray(thumbnailData.bytes, fileName, MimeTypes.Jpeg)
-        setAvatarUrlTask.execute(SetAvatarUrlTask.Params(
-                userId = userId, newAvatarUrl = response.contentUri, propagateUpdate = propagateUpdate
-        ))
+        setAvatarUrlTask.execute(SetAvatarUrlTask.Params(userId = userId, newAvatarUrl = response.contentUri))
         userStore.updateAvatar(userId, response.contentUri)
     }
 

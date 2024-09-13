@@ -23,10 +23,8 @@ import org.matrix.android.sdk.api.session.events.model.getPresenceContent
 import org.matrix.android.sdk.api.session.sync.model.PresenceSyncResponse
 import org.matrix.android.sdk.internal.database.model.RoomMemberSummaryEntity
 import org.matrix.android.sdk.internal.database.model.RoomSummaryEntity
-import org.matrix.android.sdk.internal.database.model.UserEntity
 import org.matrix.android.sdk.internal.database.model.presence.UserPresenceEntity
 import org.matrix.android.sdk.internal.database.query.updateDirectUserPresence
-import org.matrix.android.sdk.internal.database.query.updateUser
 import org.matrix.android.sdk.internal.database.query.updateUserPresence
 import javax.inject.Inject
 
@@ -55,14 +53,10 @@ internal class PresenceSyncHandler @Inject constructor(private val matrixConfigu
 
     /**
      * Store user presence to DB and update Direct Rooms and Room Member Summaries accordingly.
-     * Changed for Circles - added userEntity update
      */
-    private fun storePresenceToDB(realm: Realm, userPresenceEntity: UserPresenceEntity) {
-        val userId = userPresenceEntity.userId
-        realm.copyToRealmOrUpdate(userPresenceEntity)?.apply {
-            RoomSummaryEntity.updateDirectUserPresence(realm, userId, this)
-            RoomMemberSummaryEntity.updateUserPresence(realm, userId, this)
-            UserEntity.Companion.updateUser(realm, userId, this)
-        }
-    }
+    private fun storePresenceToDB(realm: Realm, userPresenceEntity: UserPresenceEntity) =
+            realm.copyToRealmOrUpdate(userPresenceEntity)?.apply {
+                RoomSummaryEntity.updateDirectUserPresence(realm, userPresenceEntity.userId, this)
+                RoomMemberSummaryEntity.updateUserPresence(realm, userPresenceEntity.userId, this)
+            }
 }

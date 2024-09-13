@@ -85,9 +85,8 @@ internal class RoomMemberEventHandler @Inject constructor(
     ) {
         val existingRoomMemberSummary = RoomMemberSummaryEntity.where(realm, roomId, userId).findFirst()
         if (existingRoomMemberSummary != null) {
-            //Changed for circles - only update name/avatar from presence
-            //existingRoomMemberSummary.displayName = roomMember.displayName
-            //existingRoomMemberSummary.avatarUrl = roomMember.avatarUrl
+            existingRoomMemberSummary.displayName = roomMember.displayName
+            existingRoomMemberSummary.avatarUrl = roomMember.avatarUrl
             existingRoomMemberSummary.membership = roomMember.membership
         } else {
             val presenceEntity = UserPresenceEntity.where(realm, userId).findFirst()
