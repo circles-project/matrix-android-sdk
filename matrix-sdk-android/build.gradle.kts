@@ -143,7 +143,7 @@ dependencies {
     api("androidx.preference:preference-ktx:1.2.1")
 
     // Work
-    api("androidx.work:work-runtime-ktx:2.9.0")
+    api("androidx.work:work-runtime-ktx:2.9.1")
 
     // olm lib is now hosted in MavenCentral
     api("org.matrix.android:olm-sdk:3.2.12")
@@ -185,7 +185,7 @@ dependencies {
 
     kaptAndroidTest("com.google.dagger:dagger-compiler:$dagger")
     androidTestImplementation("androidx.test:core:1.6.1")
-    androidTestImplementation("androidx.test:runner:1.6.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
     androidTestImplementation("androidx.test:rules:1.6.1")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")

@@ -72,7 +72,6 @@ import org.matrix.android.sdk.api.session.sync.model.SyncResponse
 import org.matrix.android.sdk.api.session.sync.model.ToDeviceSyncResponse
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toOptional
-import org.matrix.android.sdk.internal.crypto.dehydrated.DehydratedDevicesManager
 import org.matrix.android.sdk.internal.crypto.keysbackup.RustKeyBackupService
 import org.matrix.android.sdk.internal.crypto.model.SessionInfo
 import org.matrix.android.sdk.internal.crypto.network.OutgoingRequestsProcessor

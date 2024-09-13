@@ -28,7 +28,6 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.room.model.message.MessageType
 import org.matrix.android.sdk.api.util.JsonDict
 import org.matrix.android.sdk.internal.crypto.api.CryptoApi
-import org.matrix.android.sdk.internal.crypto.model.rest.CreateDehydratedDeviceResponse
 import org.matrix.android.sdk.internal.crypto.model.rest.DeleteDeviceParams
 import org.matrix.android.sdk.internal.crypto.model.rest.DeleteDevicesParams
 import org.matrix.android.sdk.internal.crypto.model.rest.KeyChangesResponse

@@ -101,9 +101,6 @@ interface SharedSecretStorageService {
      */
     suspend fun storeSecret(name: String, secretBase64: String, keys: List<KeyRef>)
 
-    //Added for Circles
-    suspend fun storeSecretBytes(name: String, secret: ByteArray, keys: List<KeyRef>)
-
     /**
      * Use this call to determine which SSSSKeySpec to use for requesting secret.
      */
@@ -118,9 +115,6 @@ interface SharedSecretStorageService {
      *
      */
     suspend fun getSecret(name: String, keyId: String?, secretKey: SsssKeySpec): String
-
-    //Added for Circles
-    suspend fun getSecretBytes(name: String, keyId: String?, secretKey: SsssKeySpec): ByteArray
 
     /**
      * Return true if SSSS is configured.
@@ -155,10 +149,4 @@ interface SharedSecretStorageService {
             privateKey: ByteArray,
             keySigner: KeySigner
     ): SsssKeyCreationInfo
-
-    //Added for Circles
-    fun storeBsSpekePrivateKey(keyBytes: ByteArray, keyId: String)
-
-    //Added for Circles
-    fun getBsSpekePrivateKey(keyId: String): ByteArray?
 }

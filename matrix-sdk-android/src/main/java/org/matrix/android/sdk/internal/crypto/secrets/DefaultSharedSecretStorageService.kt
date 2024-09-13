@@ -42,7 +42,6 @@ import org.matrix.android.sdk.api.session.securestorage.SsssKeySpec
 import org.matrix.android.sdk.api.session.securestorage.SsssPassphrase
 import org.matrix.android.sdk.api.util.fromBase64
 import org.matrix.android.sdk.api.util.toBase64NoPadding
-import org.matrix.android.sdk.internal.crypto.CirclesKeystoreProvider
 import org.matrix.android.sdk.internal.crypto.SecretShareManager
 import org.matrix.android.sdk.internal.crypto.keysbackup.generatePrivateKeyWithPassword
 import org.matrix.android.sdk.internal.crypto.tools.HkdfSha256
@@ -62,8 +61,7 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
         private val accountDataService: SessionAccountDataService,
         private val secretShareManager: SecretShareManager,
         private val coroutineDispatchers: MatrixCoroutineDispatchers,
-        private val cryptoCoroutineScope: CoroutineScope,
-        private val circlesKeystoreProvider: CirclesKeystoreProvider
+        private val cryptoCoroutineScope: CoroutineScope
 ) : SharedSecretStorageService {
 
     override suspend fun generateKey(
@@ -166,10 +164,6 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
     }
 
     override suspend fun storeSecret(name: String, secretBase64: String, keys: List<KeyRef>) {
-        storeSecretBytes(name, secretBase64.toByteArray(), keys)
-    }
-
-    override suspend fun storeSecretBytes(name: String, secret: ByteArray, keys: List<KeyRef>) {
         withContext(cryptoCoroutineScope.coroutineContext + coroutineDispatchers.computation) {
             val encryptedContents = HashMap<String, EncryptedSecretContent>()
             keys.forEach {
@@ -178,7 +172,7 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
                 when (val key = keyId?.let { getKey(keyId) } ?: getDefaultKey()) {
                     is KeyInfoResult.Success -> {
                         if (key.keyInfo.content.algorithm == SSSS_ALGORITHM_AES_HMAC_SHA2) {
-                            encryptAesHmacSha2(it.keySpec!!, name, secret).let {
+                            encryptAesHmacSha2(it.keySpec!!, name, secretBase64).let {
                                 encryptedContents[key.keyInfo.id] = it
                             }
                         } else {
@@ -221,7 +215,7 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
      */
     //Changed for Circles
     @Throws
-    private fun encryptAesHmacSha2(secretKey: SsssKeySpec, secretName: String, clearData: ByteArray): EncryptedSecretContent {
+    private fun encryptAesHmacSha2(secretKey: SsssKeySpec, secretName: String, clearDataBase64: String): EncryptedSecretContent {
         secretKey as RawBytesKeySpec
         val pseudoRandomKey = HkdfSha256.deriveSecret(
                 secretKey.privateKey,
@@ -249,7 +243,7 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
         val ivParameterSpec = IvParameterSpec(iv)
         cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec)
         // secret are not that big, just do Final
-        val cipherBytes = cipher.doFinal(clearData)
+        val cipherBytes = cipher.doFinal(clearDataBase64.toByteArray())
         require(cipherBytes.isNotEmpty())
 
         val macKeySpec = SecretKeySpec(macKey, "HmacSHA256")
@@ -264,7 +258,7 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
         )
     }
 
-    private fun decryptAesHmacSha2ToBytes(secretKey: SsssKeySpec, secretName: String, cipherContent: EncryptedSecretContent): ByteArray {
+    private fun decryptAesHmacSha2(secretKey: SsssKeySpec, secretName: String, cipherContent: EncryptedSecretContent): String {
         secretKey as RawBytesKeySpec
         val pseudoRandomKey = HkdfSha256.deriveSecret(
                 secretKey.privateKey,
@@ -300,11 +294,6 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
 
         require(decryptedSecret.isNotEmpty())
 
-        return decryptedSecret
-    }
-
-    private fun decryptAesHmacSha2(secretKey: SsssKeySpec, secretName: String, cipherContent: EncryptedSecretContent): String {
-        val decryptedSecret = decryptAesHmacSha2ToBytes(secretKey, secretName, cipherContent)
         return String(decryptedSecret, Charsets.UTF_8)
     }
 
@@ -354,28 +343,6 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
             val keySpec = secretKey as? RawBytesKeySpec ?: throw SharedSecretStorageError.BadKeyFormat
             return withContext(cryptoCoroutineScope.coroutineContext + coroutineDispatchers.computation) {
                 decryptAesHmacSha2(keySpec, name, secretContent)
-            }
-        } else {
-            throw SharedSecretStorageError.UnsupportedAlgorithm(algorithm.algorithm ?: "")
-        }
-    }
-
-    override suspend fun getSecretBytes(name: String, keyId: String?, secretKey: SsssKeySpec): ByteArray {
-        val accountData = accountDataService.getUserAccountDataEvent(name) ?: throw SharedSecretStorageError.UnknownSecret(name)
-        val encryptedContent = accountData.content[ENCRYPTED] as? Map<*, *> ?: throw SharedSecretStorageError.SecretNotEncrypted(name)
-        val key = keyId?.let { getKey(it) } as? KeyInfoResult.Success ?: getDefaultKey() as? KeyInfoResult.Success
-        ?: throw SharedSecretStorageError.UnknownKey(name)
-
-        val encryptedForKey = encryptedContent[key.keyInfo.id] ?: throw SharedSecretStorageError.SecretNotEncryptedWithKey(name, key.keyInfo.id)
-
-        val secretContent = EncryptedSecretContent.fromJson(encryptedForKey)
-                ?: throw SharedSecretStorageError.ParsingError
-
-        val algorithm = key.keyInfo.content
-        if (SSSS_ALGORITHM_AES_HMAC_SHA2 == algorithm.algorithm) {
-            val keySpec = secretKey as? RawBytesKeySpec ?: throw SharedSecretStorageError.BadKeyFormat
-            return withContext(cryptoCoroutineScope.coroutineContext + coroutineDispatchers.computation) {
-                decryptAesHmacSha2ToBytes(keySpec, name, secretContent)
             }
         } else {
             throw SharedSecretStorageError.UnsupportedAlgorithm(algorithm.algorithm ?: "")
@@ -460,12 +427,4 @@ internal class DefaultSharedSecretStorageService @Inject constructor(
             )
         }
     }
-
-    //Added for Circles
-    override fun storeBsSpekePrivateKey(keyBytes: ByteArray, keyId: String) {
-        circlesKeystoreProvider.storeBsSpekePrivateKey(keyBytes, keyId)
-    }
-
-    //Added for Circles
-    override fun getBsSpekePrivateKey(keyId: String): ByteArray? = circlesKeystoreProvider.getBsSpekePrivateKey(keyId)
 }
