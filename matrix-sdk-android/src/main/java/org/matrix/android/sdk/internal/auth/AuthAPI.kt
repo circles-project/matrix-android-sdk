@@ -24,8 +24,6 @@ import org.matrix.android.sdk.internal.auth.data.PasswordLoginParams
 import org.matrix.android.sdk.internal.auth.data.TokenLoginParams
 import org.matrix.android.sdk.internal.auth.data.WebClientConfig
 import org.matrix.android.sdk.internal.auth.login.LoginFlowParams
-import org.matrix.android.sdk.internal.auth.login.RefreshTokenParams
-import org.matrix.android.sdk.internal.auth.login.RefreshedTokenInfo
 import org.matrix.android.sdk.internal.auth.login.ResetPasswordMailConfirmed
 import org.matrix.android.sdk.internal.auth.registration.AddThreePidRegistrationParams
 import org.matrix.android.sdk.internal.auth.registration.AddThreePidRegistrationResponse
@@ -156,8 +154,4 @@ internal interface AuthAPI {
     //Added for Circles
     @POST(NetworkConstants.URI_API_PREFIX_PATH_R0 + "login")
     suspend fun login(@Body loginFlowParams: LoginFlowParams): Credentials
-
-    //Added for Circles
-    @POST(NetworkConstants.URI_API_PREFIX_PATH_V3 + "refresh")
-    suspend fun refreshToken(@Body refreshTokenParams: RefreshTokenParams): RefreshedTokenInfo
 }

@@ -42,8 +42,6 @@ import org.matrix.android.sdk.internal.auth.db.PendingSessionData
 import org.matrix.android.sdk.internal.auth.login.DefaultLoginWizard
 import org.matrix.android.sdk.internal.auth.login.DirectLoginTask
 import org.matrix.android.sdk.internal.auth.login.QrLoginTokenTask
-import org.matrix.android.sdk.internal.auth.login.RefreshTokenParams
-import org.matrix.android.sdk.internal.auth.login.RefreshedTokenInfo
 import org.matrix.android.sdk.internal.auth.registration.DefaultRegistrationWizard
 import org.matrix.android.sdk.internal.auth.version.Versions
 import org.matrix.android.sdk.internal.auth.version.doesServerSupportLogoutDevices
@@ -502,30 +500,5 @@ internal class DefaultAuthenticationService @Inject constructor(
     //Added for switch user
     override suspend fun removeSession(sessionId: String) {
         sessionManager.removeSession(sessionId)
-    }
-
-    //Added for Circles
-    override suspend fun refreshToken(sessionId: String): RefreshedTokenInfo {
-        val sessionParams = sessionParamsStore.get(sessionId) ?: throw IllegalArgumentException(
-                "Session params for session $sessionId not found"
-        )
-        val authAPI = buildAuthAPI(sessionParams.homeServerConnectionConfig)
-
-        val sessionCredentials = sessionParamsStore.get(sessionId)?.credentials ?: throw IllegalArgumentException(
-                "Credentials for session $sessionId not found"
-        )
-        val sessionRefreshToken = sessionCredentials.refreshToken ?: throw IllegalArgumentException(
-                "Refresh token for session $sessionId not found"
-        )
-        val refreshTokenInfo = executeRequest(null) {
-            authAPI.refreshToken(RefreshTokenParams(sessionRefreshToken))
-        }
-        val newCredentials = sessionCredentials.copy(
-                accessToken = refreshTokenInfo.accessToken,
-                refreshToken = refreshTokenInfo.refreshToken,
-                expiresInMs = refreshTokenInfo.expiresInMs
-        )
-        sessionParamsStore.updateCredentials(newCredentials)
-        return refreshTokenInfo
     }
 }
